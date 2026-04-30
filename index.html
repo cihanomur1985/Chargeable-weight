@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volume Weight Calculator · Turkish Cargo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: #fff;
+  border-bottom: 3px solid #C8102E;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 56px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-box {
+  width: 34px; height: 34px;
+  background: #C8102E;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #fff;
+}
+.logo-text { font-size: 15px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 11px; color: #C8102E; font-weight: 600; letter-spacing: 0.5px; }
+.hdiv { width: 1px; height: 28px; background: #e5e7eb; }
+.hmeta { font-size: 11px; color: #6b7280; }
+.hmeta strong { color: #374151; font-weight: 600; }
+.hspacer { flex: 1; }
+.hbadge {
+  background: #fff1f2; border: 1px solid #fecdd3;
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 11px; font-weight: 600; color: #C8102E; letter-spacing: 0.3px;
+}
+
+/* ── SUMMARY CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 10px;
+  padding: 16px 24px 0;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card:last-child {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.card-label {
+  font-size: 10px; font-weight: 600; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
+}
+.card:last-child .card-label { color: #16a34a; }
+.card-value {
+  font-size: 22px; font-weight: 700; color: #111827; line-height: 1;
+}
+.card:last-child .card-value { color: #16a34a; }
+.card-unit { font-size: 10px; color: #9ca3af; margin-top: 3px; font-weight: 500; }
+.card:last-child .card-unit { color: #86efac; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 24px;
+  flex-wrap: wrap;
+}
+.tl-label { font-size: 11px; font-weight: 600; color: #6b7280; margin-right: 2px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 6px; border: none;
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary { background: #C8102E; color: #fff; }
+.btn-primary:hover { background: #a50d25; }
+.btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+.btn-secondary:hover { background: #f9fafb; border-color: #9ca3af; }
+.btn-ghost { background: transparent; color: #9ca3af; border: 1px solid transparent; }
+.btn-ghost:hover { background: #f3f4f6; color: #6b7280; }
+.btn-upload { background: #fff; color: #374151; border: 1px solid #d1d5db; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.15s; }
+.btn-upload:hover { background: #f9fafb; }
+.btn-upload input { display: none; }
+.tsep { width: 1px; height: 22px; background: #e5e7eb; margin: 0 4px; }
+.tspacer { flex: 1; }
+
+/* ── TABLE ── */
+.table-wrap {
+  margin: 0 24px 24px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.table-scroll {
+  overflow-y: auto;
+  max-height: 560px;
+}
+.table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.table-scroll::-webkit-scrollbar-track { background: #f9fafb; }
+.table-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* colgroup widths — 3 dim cols × 14% = 42%, rest fills remainder */
+col.c-qty { width: 8%; }
+col.c-dim { width: 14%; }
+col.c-gwt { width: 10%; }
+col.c-vw  { width: 11%; }
+col.c-cw  { width: 13%; }
+col.c-del { width: 3%; }
+
+
+thead {
+  background: #f8fafc;
+  position: sticky; top: 0; z-index: 5;
+  border-bottom: 2px solid #C8102E;
+}
+th {
+  padding: 10px 4px;
+  font-size: 10px; font-weight: 700; color: #6b7280;
+  text-align: center; text-transform: uppercase; letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+th:first-child { text-align: left; padding-left: 14px; }
+th.th-cw { color: #16a34a; }
+
+tbody tr { border-bottom: 1px solid #f3f4f6; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafafa; }
+
+td { padding: 3px 3px; text-align: center; vertical-align: middle; }
+td:first-child { text-align: left; padding-left: 14px; }
+
+/* ── INPUTS ── */
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.inp {
+  width: 100%;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px;
+  padding: 5px 6px; color: #111827;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  text-align: center; outline: none; transition: border-color 0.15s, background 0.1s;
+}
+.inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
+.inp::placeholder { color: #d1d5db; font-size: 12px; }
+
+/* ── DIM CELL: input fills full col width, unit badge overlaid inside right edge ── */
+.dim-td { position: relative; padding: 3px 3px; }
+.dim-inp {
+  width: 100%;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px;
+  padding: 5px 28px 5px 6px;   /* right padding makes room for badge */
+  color: #111827;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  text-align: left; outline: none;
+  transition: border-color 0.15s, background 0.1s;
+  box-sizing: border-box;
+}
+.dim-inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
+.dim-inp::placeholder { color: #d1d5db; }
+
+/* unit badge — sits inside the input on the right */
+.ubadge {
+  position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+  font-size: 9px; font-weight: 700; font-family: 'Inter', sans-serif;
+  border-radius: 3px; padding: 2px 4px; cursor: pointer;
+  user-select: none; transition: all 0.1s; white-space: nowrap;
+}
+.ubadge.u-cm   { background: #e5e7eb; color: #6b7280; }
+.ubadge.u-inch { background: #fef3c7; color: #b45309; }
+.ubadge.u-feet { background: #dbeafe; color: #1d4ed8; }
+
+/* cm hint — tiny text below input when unit != cm */
+.dim-hint {
+  font-size: 9px; color: #9ca3af; text-align: center;
+  height: 10px; line-height: 10px; margin-top: 1px;
+}
+.dim-hint.on { color: #b45309; font-weight: 600; }
+
+/* ── VW display ── */
+.vw-val { font-size: 13px; font-weight: 600; color: #374151; }
+.vw-val.empty { color: #d1d5db; font-weight: 400; }
+
+/* ── CHARGEABLE WEIGHT ── */
+.cw-val {
+  font-size: 13px; font-weight: 700; color: #16a34a;
+  cursor: pointer; padding: 4px 6px; border-radius: 5px;
+  border: 1px solid transparent; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; min-height: 28px;
+}
+.cw-val:hover { background: #f0fdf4; border-color: #bbf7d0; }
+.cw-val.empty { color: #d1d5db; font-weight: 400; cursor: pointer; }
+.cw-val.manual { color: #d97706; }
+.cw-val.manual::after { content: ' ✎'; font-size: 9px; }
+.cw-inp {
+  display: none; width: 100%;
+  background: #f0fdf4; border: 1px solid #4ade80; border-radius: 5px;
+  padding: 5px 4px; color: #16a34a; font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700; text-align: center; outline: none;
+}
+
+/* ── DELETE ── */
+.del-btn {
+  background: none; border: none; color: #d1d5db; cursor: pointer;
+  padding: 4px; border-radius: 4px; font-size: 11px; transition: all 0.15s; line-height: 1;
+}
+.del-btn:hover { color: #C8102E; background: #fff1f2; }
+
+/* ── BOTTOM BAR ── */
+.bottom {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 24px 16px; flex-wrap: wrap;
+}
+.chip {
+  font-size: 11px; color: #6b7280; background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 6px; padding: 4px 10px; font-weight: 500;
+}
+.chip b { color: #C8102E; }
+.bspacer { flex: 1; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid #e5e7eb; padding: 10px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; font-size: 11px; color: #9ca3af;
+}
+footer span { color: #C8102E; font-weight: 600; }
+
+/* ── AI MODAL ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); backdrop-filter: blur(3px); z-index: 500; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 12px; width: 480px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  animation: pop 0.2s cubic-bezier(0.34,1.4,0.64,1);
+  overflow: hidden;
+}
+@keyframes pop { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.mhead { border-bottom: 1px solid #f3f4f6; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.mtitle { font-size: 15px; font-weight: 700; color: #111827; }
+.mtitle em { color: #C8102E; font-style: normal; }
+.mclose { background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+.mclose:hover { background: #f3f4f6; }
+.mbody { padding: 20px; }
+.mfoot { padding: 14px 20px; border-top: 1px solid #f3f4f6; display: flex; gap: 8px; justify-content: flex-end; background: #f9fafb; }
+
+.flabel { font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.flabel a { color: #C8102E; text-decoration: none; margin-left: 6px; }
+.frow { display: flex; gap: 6px; margin-bottom: 4px; }
+.finp { flex: 1; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; font-family: 'Inter', sans-serif; font-size: 13px; color: #111827; outline: none; }
+.finp:focus { border-color: #C8102E; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
+.feye { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 13px; color: #6b7280; }
+.fnote { font-size: 11px; color: #9ca3af; margin-bottom: 14px; }
+.fdiv { height: 1px; background: #f3f4f6; margin: 14px 0; }
+
+.dzone {
+  border: 2px dashed #e5e7eb; border-radius: 8px; padding: 28px 20px;
+  text-align: center; cursor: pointer; position: relative;
+  background: #f9fafb; transition: all 0.2s;
+}
+.dzone:hover, .dzone.over { border-color: #C8102E; background: #fff1f2; }
+.dzone input { position: absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; }
+.dicon { font-size: 28px; margin-bottom: 6px; }
+.dtitle { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 3px; }
+.dsub { font-size: 11px; color: #9ca3af; }
+
+.prev { display: none; margin-top: 10px; }
+.prev.on { display: block; }
+.prev img { width: 100%; max-height: 150px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; }
+
+.status { margin-top: 10px; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; display: none; }
+.status.thinking { display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+.status.ok  { display: flex; align-items: center; gap: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+.status.err { display: flex; align-items: center; gap: 8px; background: #fff1f2; border: 1px solid #fecdd3; color: #C8102E; }
+.spin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid transparent; border-top-color: #92400e; animation: sp 0.7s linear infinite; flex-shrink:0; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.mbtn { background: #C8102E; color: #fff; border: none; padding: 9px 20px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.mbtn:hover:not(:disabled) { background: #a50d25; }
+.mbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; right: 20px; background: #111827; color: #fff; font-size: 12px; font-weight: 600; padding: 10px 18px; border-radius: 8px; transform: translateY(60px); opacity: 0; transition: all 0.25s; z-index: 999; }
+.toast.on { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-box">✈</div>
+    <div>
+      <div class="logo-text">Turkish Cargo</div>
+      <div class="logo-sub">Toronto · Canada</div>
+    </div>
+  </div>
+  <div class="hdiv"></div>
+  <div class="hmeta"><strong>YYZ / Mississauga</strong></div>
+  <div class="hdiv"></div>
+  <div class="hmeta">Rate: <strong>1 m³ = 167 kg</strong></div>
+  <div class="hspacer"></div>
+  <div class="hbadge">⚖ Volume Weight Calculator</div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="cards">
+  <div class="card">
+    <div class="card-label">Total Pieces</div>
+    <div class="card-value" id="s-pcs">0</div>
+    <div class="card-unit">pcs</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Total Actual Weight</div>
+    <div class="card-value" id="s-wgt">0.00</div>
+    <div class="card-unit">kg</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Total Volume</div>
+    <div class="card-value" id="s-m3">0.000</div>
+    <div class="card-unit">m³</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Total Vol. Weight</div>
+    <div class="card-value" id="s-vw">0.00</div>
+    <div class="card-unit">kg</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Total Chargeable</div>
+    <div class="card-value" id="s-cw">0.00</div>
+    <div class="card-unit">kg · max(actual, vol.wgt)</div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="tl-label">Add rows:</span>
+  <button class="btn btn-primary" onclick="addRows(1)">+1</button>
+  <button class="btn btn-secondary" onclick="addRows(5)">+5</button>
+  <button class="btn btn-secondary" onclick="addRows(10)">+10</button>
+  <button class="btn btn-secondary" onclick="addRows(20)">+20</button>
+  <div class="tsep"></div>
+  <label class="btn-upload">
+    📂 Upload Excel
+    <input type="file" accept=".xlsx,.xls" onchange="excelUpload(event)">
+  </label>
+  <button class="btn btn-primary" onclick="openAI()">🤖 Read Screenshot</button>
+  <div class="tspacer"></div>
+  <button class="btn btn-ghost" onclick="clearAll()">🗑 Clear All</button>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <div class="table-scroll">
+    <table id="tbl">
+
+        <col class="c-qty">
+        <col class="c-dim">
+        <col class="c-dim">
+        <col class="c-dim">
+        <col class="c-gwt">
+        <col class="c-vw">
+        <col class="c-cw">
+        <col class="c-del">
+      </colgroup>
+      <thead>
+        <tr>
+
+          <th>Pieces</th>
+          <th>Length (L)</th>
+          <th>Width (W)</th>
+          <th>Height (H)</th>
+          <th>Unit Wgt (kg)</th>
+          <th>Vol. Wgt (kg)</th>
+          <th class="th-cw">Chargeable (kg)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BOTTOM -->
+<div class="bottom">
+  <div class="chip">Max <b>200</b> rows · <b id="rc">0</b>/200 used</div>
+  <div class="chip">Click Chargeable cell to override</div>
+  <div class="bspacer"></div>
+  <div class="chip">1 m³ = <b>167 kg</b></div>
+</div>
+
+<!-- AI MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">🤖 Read Screenshot with <em>AI</em></div>
+      <button class="mclose" onclick="closeAI()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="flabel">Anthropic API Key <a href="https://console.anthropic.com/settings/keys" target="_blank">→ Get free key</a></div>
+      <div class="frow">
+        <input class="finp" id="akey" type="password" placeholder="sk-ant-..." oninput="keyChanged()" onfocus="this.style.borderColor='#C8102E'" onblur="this.style.borderColor='#e5e7eb'">
+        <button class="feye" onclick="toggleEye()">👁</button>
+      </div>
+      <div class="fnote">Stored only in your browser — never sent elsewhere.</div>
+      <div class="fdiv"></div>
+      <div class="dzone" id="dzone">
+        <input type="file" accept="image/*" onchange="imgPicked(event)">
+        <div class="dicon">📸</div>
+        <div class="dtitle">Drag & drop or click to browse</div>
+        <div class="dsub">PNG, JPG, WEBP · any screenshot or photo</div>
+      </div>
+      <div class="prev" id="prev"><img id="pimg" src="" alt=""></div>
+      <div class="status" id="st"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-secondary" onclick="closeAI()">Cancel</button>
+      <button class="mbtn" id="runbtn" disabled onclick="runAI()">Extract Dimensions</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span style="color:#374151;font-weight:600;">Turkish Cargo · Volume Weight Calculator</span>
+  <span>Chargeable = max(actual, vol. weight) · click cell to override · <span>1 m³ = 167 kg</span></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const F = 167, MAX = 200;
+let rid = 0;
+const cwo = {}; // chargeable overrides
+
+/* utils */
+const $ = id => document.getElementById(id);
+const fmt = (n,d) => n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2600); }
+function toCm(v,u){ v=parseFloat(v); if(isNaN(v)||v===0)return 0; return u==='inch'?v*2.54:u==='feet'?v*30.48:v; }
+
+/* unit cycling — click to cycle cm→inch→feet→cm */
+const UNITS = ['cm','inch','feet'];
+function nextUnit(current){ return UNITS[(UNITS.indexOf(current)+1)%UNITS.length]; }
+function unitClass(u){ return u==='inch'?'u-inch':u==='feet'?'u-feet':'u-cm'; }
+
+function cycleUnit(id, ax){
+  const badge = $(`u-${ax}-${id}`);
+  const nxt = nextUnit(badge.dataset.unit);
+  badge.dataset.unit = nxt;
+  badge.textContent  = nxt;
+  badge.className    = 'ubadge ' + unitClass(nxt);
+  refreshHint(id,ax);
+  recalcRow(id);
+}
+
+function getUnit(id,ax){ return ($(`u-${ax}-${id}`)?.dataset.unit)||'cm'; }
+function getCm(id,ax){ return toCm(parseFloat($(`d-${ax}-${id}`)?.value)||0, getUnit(id,ax)); }
+
+function refreshHint(id,ax){
+  const u = getUnit(id,ax);
+  const v = parseFloat($(`d-${ax}-${id}`)?.value)||0;
+  const el= $(`h-${ax}-${id}`);
+  if(!el)return;
+  if(u!=='cm'&&v>0){ el.textContent=`= ${toCm(v,u).toFixed(1)} cm`; el.className='dim-hint on'; }
+  else { el.textContent=''; el.className='dim-hint'; }
+}
+
+/* row calc */
+function recalcRow(id){
+  const tr=document.querySelector(`tr[data-id="${id}"]`); if(!tr)return;
+  const qty=parseFloat(tr.querySelector('[data-field="qty"]')?.value)||1;
+  const l=getCm(id,'l'), w=getCm(id,'w'), h=getCm(id,'h');
+  const gwt=parseFloat(tr.querySelector('[data-field="gwt"]')?.value)||0;
+
+  const vwEl=$('vw-'+id);
+  let vw=0;
+  if(l&&w&&h){ vw=qty*(l*w*h/1e6)*F; vwEl.textContent=fmt(vw,2); vwEl.className='vw-val'; }
+  else { vwEl.textContent='—'; vwEl.className='vw-val empty'; }
+
+  if(cwo[id]==null) renderCW(id, Math.max(qty*gwt, vw));
+  recalcSummary();
+}
+
+function renderCW(id, autoVal){
+  const disp=$(`cw-${id}`), inp=$(`cwi-${id}`);
+  if(!disp)return;
+  inp.style.display='none'; disp.style.display='flex';
+  const v = cwo[id]!=null ? cwo[id] : autoVal;
+  if(v>0){ disp.textContent=fmt(v,2); disp.className=cwo[id]!=null?'cw-val manual':'cw-val'; }
+  else { disp.textContent='—'; disp.className='cw-val empty'; }
+}
+
+function startCWEdit(id){
+  const disp=$(`cw-${id}`), inp=$(`cwi-${id}`);
+  const tr=document.querySelector(`tr[data-id="${id}"]`);
+  const qty=parseFloat(tr?.querySelector('[data-field="qty"]')?.value)||1;
+  const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
+  const gwt=parseFloat(tr?.querySelector('[data-field="gwt"]')?.value)||0;
+  const vw=(l&&w&&h)?qty*(l*w*h/1e6)*F:0;
+  const auto=Math.max(qty*gwt,vw);
+  disp.style.display='none'; inp.style.display='block';
+  inp.value=cwo[id]!=null?cwo[id]:auto||''; inp.focus(); inp.select();
+}
+function commitCW(id){
+  const inp=$(`cwi-${id}`);
+  const tr=document.querySelector(`tr[data-id="${id}"]`);
+  const qty=parseFloat(tr?.querySelector('[data-field="qty"]')?.value)||1;
+  const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
+  const gwt=parseFloat(tr?.querySelector('[data-field="gwt"]')?.value)||0;
+  const vw=(l&&w&&h)?qty*(l*w*h/1e6)*F:0;
+  const auto=Math.max(qty*gwt,vw);
+  const raw=parseFloat(inp.value);
+  const v=isNaN(raw)?NaN:Math.round(raw*100)/100;
+  if(isNaN(v)||Math.abs(v-auto)<0.01) delete cwo[id]; else cwo[id]=v;
+  renderCW(id, auto); recalcSummary();
+}
+
+function recalcSummary(){
+  let tp=0,tw=0,tm=0,tv=0,tc=0;
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const id=parseInt(tr.dataset.id);
+    const lI=$(`d-l-${id}`); if(!lI||!lI.value)return;
+    const qty=parseFloat(tr.querySelector('[data-field="qty"]')?.value)||1;
+    const gwt=parseFloat(tr.querySelector('[data-field="gwt"]')?.value)||0;
+    const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
+    tp+=qty; tw+=qty*gwt;
+    let vw=0;
+    if(l&&w&&h){const m3=l*w*h/1e6; tm+=qty*m3; vw=qty*m3*F; tv+=vw;}
+    const auto=Math.max(qty*gwt,vw);
+    tc+=(cwo[id]!=null?cwo[id]:auto);
+  });
+  $('s-pcs').textContent=tp;
+  $('s-wgt').textContent=fmt(tw,2);
+  $('s-m3').textContent=fmt(tm,3);
+  $('s-vw').textContent=fmt(tv,2);
+  $('s-cw').textContent=fmt(tc,2);
+}
+
+/* add rows */
+function addRows(n){
+  const tb=$('tbody');
+  const cur=tb.querySelectorAll('tr').length;
+  const add=Math.min(n,MAX-cur);
+  if(add<=0){toast('Maximum 200 rows reached!');return;}
+
+  for(let i=0;i<add;i++){
+    const id=++rid;
+    const tr=document.createElement('tr');
+    tr.dataset.id=id;
+
+
+    const tq=document.createElement('td');
+    const qi=mkInp('qty',id); qi.placeholder='1';
+    qi.addEventListener('input',()=>recalcRow(id));
+    tq.appendChild(qi); tr.appendChild(tq);
+
+    // L W H
+    ['l','w','h'].forEach(ax=>{
+      const td=document.createElement('td');
+      td.className='dim-td';
+      td.style.position='relative';
+
+      const inp=document.createElement('input');
+      inp.className='dim-inp'; inp.type='number'; inp.min='0'; inp.placeholder='0';
+      inp.id=`d-${ax}-${id}`;
+      inp.addEventListener('input',()=>{refreshHint(id,ax);recalcRow(id);});
+      inp.addEventListener('focus',()=>inp.select());
+
+      const badge=document.createElement('span');
+      badge.className='ubadge u-cm'; badge.textContent='cm';
+      badge.dataset.unit='cm'; badge.id=`u-${ax}-${id}`;
+      badge.title='Click to cycle unit';
+      badge.addEventListener('click',()=>cycleUnit(id,ax));
+
+      const hint=document.createElement('div');
+      hint.className='dim-hint'; hint.id=`h-${ax}-${id}`;
+
+      td.appendChild(inp); td.appendChild(badge); td.appendChild(hint);
+      tr.appendChild(td);
+    });
+
+    // GWT
+    const tg=document.createElement('td');
+    const gi=mkInp('gwt',id); gi.placeholder='0';
+    gi.addEventListener('input',()=>recalcRow(id));
+    tg.appendChild(gi); tr.appendChild(tg);
+
+    // VW
+    const tv=document.createElement('td');
+    const vd=document.createElement('div');
+    vd.className='vw-val empty'; vd.id='vw-'+id; vd.textContent='—';
+    tv.appendChild(vd); tr.appendChild(tv);
+
+    // CW
+    const tc=document.createElement('td');
+    const cd=document.createElement('div');
+    cd.className='cw-val empty'; cd.id='cw-'+id; cd.textContent='—';
+    cd.title='Click to override';
+    cd.addEventListener('click',()=>startCWEdit(id));
+    const ci=document.createElement('input');
+    ci.className='cw-inp'; ci.type='number'; ci.id='cwi-'+id; ci.placeholder='0'; ci.step='0.01';
+    ci.addEventListener('blur',()=>commitCW(id));
+    ci.addEventListener('keydown',e=>{
+      if(e.key==='Enter')ci.blur();
+      if(e.key==='Escape'){delete cwo[id];const tr2=document.querySelector(`tr[data-id="${id}"]`);const qty2=parseFloat(tr2?.querySelector('[data-field="qty"]')?.value)||1;const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');const gwt2=parseFloat(tr2?.querySelector('[data-field="gwt"]')?.value)||0;const vw2=(l&&w&&h)?qty2*(l*w*h/1e6)*F:0;renderCW(id,Math.max(qty2*gwt2,vw2));recalcSummary();}
+    });
+    tc.appendChild(cd); tc.appendChild(ci); tr.appendChild(tc);
+
+    // Del
+    const td2=document.createElement('td');
+    const db=document.createElement('button');
+    db.className='del-btn'; db.innerHTML='✕';
+    db.addEventListener('click',()=>{delete cwo[id];tr.remove();renumber();$('rc').textContent=document.querySelectorAll('#tbody tr').length;recalcSummary();});
+    td2.appendChild(db); tr.appendChild(td2);
+
+    tb.appendChild(tr);
+  }
+  renumber();
+  $('rc').textContent=tb.querySelectorAll('tr').length;
+}
+
+function mkInp(field,id){
+  const i=document.createElement('input');
+  i.className='inp'; i.type='number'; i.min='0'; i.dataset.field=field;
+  i.addEventListener('focus',()=>i.select());
+  return i;
+}
+function renumber(){}
+function clearAll(){
+  if(!confirm('Clear all data?'))return;
+  $('tbody').innerHTML='';
+  Object.keys(cwo).forEach(k=>delete cwo[k]);
+  rid=0; $('rc').textContent=0;
+  recalcSummary(); addRows(10);
+}
+
+function excelUpload(ev){
+  const f=ev.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+      let s=0;
+      for(let i=0;i<Math.min(5,rows.length);i++){
+        const r2=rows[i].map(c=>String(c).toLowerCase());
+        if(r2.some(c=>c.includes('piece')||c.includes('qty')||c.includes('length')||c.includes('width')||c.includes('parça'))){s=i+1;break;}
+      }
+      const data=rows.slice(s).filter(r2=>r2.some(c=>c!==''));
+      if(!data.length){toast('No data found!');return;}
+      $('tbody').innerHTML=''; rid=0;
+      Object.keys(cwo).forEach(k=>delete cwo[k]);
+      const need=Math.min(data.length,MAX);
+      addRows(need);
+      const trs=document.querySelectorAll('#tbody tr');
+      data.slice(0,need).forEach((row,i)=>{
+        const tr=trs[i]; if(!tr)return;
+        const id=parseInt(tr.dataset.id);
+        let o=(!isNaN(parseFloat(row[0]))&&String(row[0]).length<=3&&row.length>5)?1:0;
+        const qE=tr.querySelector('[data-field="qty"]'),gE=tr.querySelector('[data-field="gwt"]');
+        if(qE&&row[o]!=='')qE.value=parseFloat(row[o])||'';
+        ['l','w','h'].forEach((ax,ai)=>{
+          const inp=$(`d-${ax}-${id}`); if(inp&&row[o+1+ai]!=='')inp.value=parseFloat(row[o+1+ai])||'';
+          refreshHint(id,ax);
+        });
+        if(gE&&row[o+4]!=='')gE.value=parseFloat(row[o+4])||'';
+        recalcRow(id);
+      });
+      recalcSummary(); $('rc').textContent=need;
+      toast(`${need} rows loaded ✓`);
+    }catch(er){toast('Excel error: '+er.message);}
+    ev.target.value='';
+  };
+  r.readAsArrayBuffer(f);
+}
+
+/* AI modal */
+let aiB64=null, aiMime='image/png';
+
+function openAI(){
+  $('modal').classList.add('open');
+  aiB64=null; $('prev').classList.remove('on'); $('pimg').src='';
+  setSt('',''); $('runbtn').disabled=true;
+  $('akey').value=localStorage.getItem('ak')||'';
+  checkRunBtn();
+}
+function closeAI(){$('modal').classList.remove('open');}
+function keyChanged(){const k=$('akey').value.trim();if(k)localStorage.setItem('ak',k);checkRunBtn();}
+function toggleEye(){const i=$('akey');i.type=i.type==='password'?'text':'password';}
+function checkRunBtn(){$('runbtn').disabled=!($('akey').value.trim().length>10&&!!aiB64);}
+function setSt(t,m){const el=$('st');el.className='status'+(t?' '+t:'');el.innerHTML=m;}
+
+function imgPicked(e){const f=e.target.files[0];if(f)loadImg(f);}
+function loadImg(f){
+  aiMime=f.type||'image/png';
+  const r=new FileReader();
+  r.onload=e=>{const u=e.target.result;aiB64=u.split(',')[1];$('pimg').src=u;$('prev').classList.add('on');setSt('','');checkRunBtn();};
+  r.readAsDataURL(f);
+}
+const dz=$('dzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);});
+
+async function runAI(){
+  if(!aiB64)return;
+  const key=$('akey').value.trim();
+  if(!key){setSt('err','Please enter your API key.');return;}
+  $('runbtn').disabled=true;
+  setSt('thinking','<div class="spin"></div> Claude is reading the image…');
+
+  const prompt=`Analyze this cargo/shipping image. Extract all line items as JSON array only:
+[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25}]
+l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Return [] if no data found. No extra text.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:aiMime,data:aiB64}},{type:'text',text:prompt}]}]})
+    });
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
+    const d=await res.json();
+    const raw=d.content.map(c=>c.text||'').join('').trim();
+    const items=JSON.parse(raw.replace(/```json|```/gi,'').trim());
+    if(!Array.isArray(items)||!items.length){setSt('err','No dimension data found. Try a clearer image.');$('runbtn').disabled=false;return;}
+
+    const cur=document.querySelectorAll('#tbody tr').length;
+    if(items.length>cur)addRows(items.length-cur);
+    const trs=document.querySelectorAll('#tbody tr');
+    items.forEach((item,i)=>{
+      const tr=trs[i]; if(!tr)return;
+      const id=parseInt(tr.dataset.id);
+      const u=(item.unit||'cm').toLowerCase();
+      const qE=tr.querySelector('[data-field="qty"]'),gE=tr.querySelector('[data-field="gwt"]');
+      if(qE)qE.value=item.qty||1;
+      if(gE&&item.gwt)gE.value=item.gwt;
+      ['l','w','h'].forEach(ax=>{
+        const inp=$(`d-${ax}-${id}`), ubtn=$(`u-${ax}-${id}`);
+        if(inp)inp.value=item[ax]||'';
+        if(ubtn){ ubtn.dataset.unit=UNITS.includes(u)?u:'cm'; ubtn.textContent=ubtn.dataset.unit; ubtn.className='ubadge '+unitClass(ubtn.dataset.unit); }
+        refreshHint(id,ax);
+      });
+      recalcRow(id);
+    });
+    recalcSummary();
+    setSt('ok',`✓ ${items.length} rows imported successfully!`);
+    $('runbtn').disabled=false;
+    setTimeout(closeAI,1600);
+  }catch(er){setSt('err','Error: '+er.message);$('runbtn').disabled=false;}
+}
+
+addRows(10);
+</script>
+</body>
+</html>
