@@ -799,11 +799,8 @@ l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Retu
     $('runbtn').disabled=false;
     setTimeout(closeAI,1600);
   }catch(er){
-    let msg=er.message;
-    if(msg.toLowerCase().includes('fetch')||msg.toLowerCase().includes('network')){
-      msg='Network error: Open this file via a local server (not file://). See README for instructions.';
-    }
-    setSt('err','Error: '+msg);$('runbtn').disabled=false;
+    setSt('err','Error: '+er.message);
+    $('runbtn').disabled=false;
   }
 }
 
