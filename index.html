@@ -175,38 +175,59 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
 .inp::placeholder { color: #d1d5db; font-size: 12px; }
 
-/* ── DIM CELL: input fills full col width, unit badge overlaid inside right edge ── */
-.dim-td { position: relative; padding: 3px 3px; }
+/* ── DIM CELL ── */
+.dim-td { padding: 3px 3px; }
 .dim-inp {
   width: 100%;
   background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px;
-  padding: 5px 28px 5px 6px;   /* right padding makes room for badge */
+  padding: 5px 6px;
   color: #111827;
   font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
-  text-align: left; outline: none;
+  text-align: center; outline: none;
   transition: border-color 0.15s, background 0.1s;
   box-sizing: border-box;
 }
 .dim-inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
 .dim-inp::placeholder { color: #d1d5db; }
 
-/* unit badge — sits inside the input on the right */
-.ubadge {
-  position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
-  font-size: 9px; font-weight: 700; font-family: 'Inter', sans-serif;
-  border-radius: 3px; padding: 2px 4px; cursor: pointer;
-  user-select: none; transition: all 0.1s; white-space: nowrap;
+/* unit radio group */
+.unit-radios {
+  display: flex; gap: 2px; justify-content: center; margin-top: 3px;
 }
-.ubadge.u-cm   { background: #e5e7eb; color: #6b7280; }
-.ubadge.u-inch { background: #fef3c7; color: #b45309; }
-.ubadge.u-feet { background: #dbeafe; color: #1d4ed8; }
+.unit-radios label {
+  display: flex; align-items: center;
+  font-size: 9px; font-weight: 600; cursor: pointer;
+  padding: 1px 5px; border-radius: 3px;
+  border: 1px solid #e5e7eb; background: #f9fafb;
+  color: #9ca3af; transition: all 0.1s; user-select: none;
+  white-space: nowrap;
+}
+.unit-radios input[type=radio] { display: none; }
+.unit-radios label.selected-cm   { border-color: #9ca3af; background: #e5e7eb; color: #374151; }
+.unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #b45309; }
+.unit-radios label.selected-feet { border-color: #3b82f6; background: #dbeafe; color: #1d4ed8; }
 
-/* cm hint — tiny text below input when unit != cm */
+/* cm hint */
 .dim-hint {
   font-size: 9px; color: #9ca3af; text-align: center;
   height: 10px; line-height: 10px; margin-top: 1px;
 }
 .dim-hint.on { color: #b45309; font-weight: 600; }
+
+/* ── NON-STACKABLE ── */
+.ns-wrap { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+.ns-btn {
+  font-size: 8px; font-weight: 700; padding: 2px 5px;
+  border-radius: 3px; border: 1px solid #e5e7eb;
+  background: #f9fafb; color: #9ca3af; cursor: pointer;
+  white-space: nowrap; transition: all 0.15s;
+  font-family: 'Inter', sans-serif; line-height: 1.4; margin-top: 2px;
+  display: flex; align-items: center; gap: 3px; justify-content: center;
+}
+.ns-btn::before { content: '☐'; font-size: 10px; }
+.ns-btn:hover { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+.ns-btn.active { border-color: #f59e0b; background: #fef3c7; color: #92400e; }
+.ns-btn.active::before { content: '☑'; }
 
 /* ── VW display ── */
 .vw-val { font-size: 13px; font-weight: 600; color: #374151; }
@@ -396,7 +417,6 @@ footer span { color: #C8102E; font-weight: 600; }
       </colgroup>
       <thead>
         <tr>
-
           <th>Pieces</th>
           <th>Length (L)</th>
           <th>Width (W)</th>
@@ -469,22 +489,22 @@ const fmt = (n,d) => n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2600); }
 function toCm(v,u){ v=parseFloat(v); if(isNaN(v)||v===0)return 0; return u==='inch'?v*2.54:u==='feet'?v*30.48:v; }
 
-/* unit cycling — click to cycle cm→inch→feet→cm */
+/* unit radio system */
 const UNITS = ['cm','inch','feet'];
-function nextUnit(current){ return UNITS[(UNITS.indexOf(current)+1)%UNITS.length]; }
 function unitClass(u){ return u==='inch'?'u-inch':u==='feet'?'u-feet':'u-cm'; }
 
-function cycleUnit(id, ax){
-  const badge = $(`u-${ax}-${id}`);
-  const nxt = nextUnit(badge.dataset.unit);
-  badge.dataset.unit = nxt;
-  badge.textContent  = nxt;
-  badge.className    = 'ubadge ' + unitClass(nxt);
+function setUnit(id, ax, u){
+  UNITS.forEach(unit=>{
+    const lbl = $(`ul-${ax}-${unit}-${id}`);
+    if(lbl) lbl.className = (unit===u) ? `selected-${unit}` : '';
+  });
+  const inp = $(`d-${ax}-${id}`);
+  if(inp) inp.dataset.unit = u;
   refreshHint(id,ax);
   recalcRow(id);
 }
 
-function getUnit(id,ax){ return ($(`u-${ax}-${id}`)?.dataset.unit)||'cm'; }
+function getUnit(id,ax){ return ($(`d-${ax}-${id}`)?.dataset.unit)||'cm'; }
 function getCm(id,ax){ return toCm(parseFloat($(`d-${ax}-${id}`)?.value)||0, getUnit(id,ax)); }
 
 function refreshHint(id,ax){
@@ -494,6 +514,37 @@ function refreshHint(id,ax){
   if(!el)return;
   if(u!=='cm'&&v>0){ el.textContent=`= ${toCm(v,u).toFixed(1)} cm`; el.className='dim-hint on'; }
   else { el.textContent=''; el.className='dim-hint'; }
+}
+
+/* non-stackable toggle — saves original value, restores on untick */
+const nsOriginal = {}; // stores original h value per row id
+
+function toggleNS(id){
+  const btn = $(`ns-${id}`);
+  const inp = $(`d-h-${id}`);
+  if(!btn||!inp) return;
+  const isActive = !btn.classList.contains('active');
+  if(isActive){
+    // Save original value before changing
+    nsOriginal[id] = inp.value;
+    const hCm = getCm(id,'h');
+    const target = (hCm > 0 && hCm >= 163) ? 240 : 163;
+    const u = getUnit(id,'h');
+    let val = target;
+    if(u==='inch') val = +(target/2.54).toFixed(2);
+    else if(u==='feet') val = +(target/30.48).toFixed(3);
+    inp.value = val;
+    btn.classList.add('active');
+    btn.title = 'Non-stackable ON — click to restore original height';
+  } else {
+    // Restore original value
+    inp.value = nsOriginal[id] ?? '';
+    delete nsOriginal[id];
+    btn.classList.remove('active');
+    btn.title = 'Non-stackable: sets height to 163 or 240 cm';
+  }
+  refreshHint(id,'h');
+  recalcRow(id);
 }
 
 /* row calc */
@@ -589,24 +640,68 @@ function addRows(n){
     ['l','w','h'].forEach(ax=>{
       const td=document.createElement('td');
       td.className='dim-td';
-      td.style.position='relative';
+
+      const wrap = ax==='h' ? document.createElement('div') : null;
+      if(wrap){ wrap.className='ns-wrap'; td.appendChild(wrap); }
+      const container = wrap || td;
+
+      // input row (for H: wrap in flex row with NS button)
+      let inputRow = container;
+      if(ax==='h'){
+        inputRow = document.createElement('div');
+        inputRow.style.cssText='display:flex;align-items:center;gap:2px;';
+        container.appendChild(inputRow);
+      }
 
       const inp=document.createElement('input');
       inp.className='dim-inp'; inp.type='number'; inp.min='0'; inp.placeholder='0';
-      inp.id=`d-${ax}-${id}`;
-      inp.addEventListener('input',()=>{refreshHint(id,ax);recalcRow(id);});
+      inp.id=`d-${ax}-${id}`; inp.dataset.unit='cm';
+      inp.addEventListener('input',()=>{
+        refreshHint(id,ax);
+        // If user manually edits H while NS is active, deactivate NS and update saved original
+        if(ax==='h'){
+          const nsBtn=$(`ns-${id}`);
+          if(nsBtn&&nsBtn.classList.contains('active')){
+            nsOriginal[id]=inp.value;
+          }
+        }
+        recalcRow(id);
+      });
       inp.addEventListener('focus',()=>inp.select());
+      inputRow.appendChild(inp);
 
-      const badge=document.createElement('span');
-      badge.className='ubadge u-cm'; badge.textContent='cm';
-      badge.dataset.unit='cm'; badge.id=`u-${ax}-${id}`;
-      badge.title='Click to cycle unit';
-      badge.addEventListener('click',()=>cycleUnit(id,ax));
+      // non-stackable button for H
+      if(ax==='h'){
+        const nsBtn=document.createElement('button');
+        nsBtn.className='ns-btn'; nsBtn.id=`ns-${id}`;
+        nsBtn.title='Non-stackable: sets height to 163 or 240 cm';
+        nsBtn.textContent='NS';
+        nsBtn.addEventListener('click',()=>toggleNS(id));
+        inputRow.appendChild(nsBtn);
+      }
+
+      // unit radios
+      const radioWrap=document.createElement('div');
+      radioWrap.className='unit-radios';
+      UNITS.forEach(unit=>{
+        const lbl=document.createElement('label');
+        lbl.id=`ul-${ax}-${unit}-${id}`;
+        lbl.className= unit==='cm' ? 'selected-cm' : '';
+        const radio=document.createElement('input');
+        radio.type='radio'; radio.name=`u-${ax}-${id}`; radio.value=unit;
+        if(unit==='cm') radio.checked=true;
+        radio.addEventListener('change',()=>setUnit(id,ax,unit));
+        const span=document.createElement('span');
+        span.textContent=unit;
+        lbl.appendChild(radio); lbl.appendChild(span);
+        radioWrap.appendChild(lbl);
+      });
+      container.appendChild(radioWrap);
 
       const hint=document.createElement('div');
       hint.className='dim-hint'; hint.id=`h-${ax}-${id}`;
+      container.appendChild(hint);
 
-      td.appendChild(inp); td.appendChild(badge); td.appendChild(hint);
       tr.appendChild(td);
     });
 
@@ -641,12 +736,11 @@ function addRows(n){
     const td2=document.createElement('td');
     const db=document.createElement('button');
     db.className='del-btn'; db.innerHTML='✕';
-    db.addEventListener('click',()=>{delete cwo[id];tr.remove();renumber();$('rc').textContent=document.querySelectorAll('#tbody tr').length;recalcSummary();});
+    db.addEventListener('click',()=>{delete cwo[id];tr.remove();$('rc').textContent=document.querySelectorAll('#tbody tr').length;recalcSummary();});
     td2.appendChild(db); tr.appendChild(td2);
 
     tb.appendChild(tr);
   }
-  renumber();
   $('rc').textContent=tb.querySelectorAll('tr').length;
 }
 
@@ -656,7 +750,6 @@ function mkInp(field,id){
   i.addEventListener('focus',()=>i.select());
   return i;
 }
-function renumber(){}
 function clearAll(){
   if(!confirm('Clear all data?'))return;
   $('tbody').innerHTML='';
@@ -692,6 +785,7 @@ function excelUpload(ev){
         if(qE&&row[o]!=='')qE.value=parseFloat(row[o])||'';
         ['l','w','h'].forEach((ax,ai)=>{
           const inp=$(`d-${ax}-${id}`); if(inp&&row[o+1+ai]!=='')inp.value=parseFloat(row[o+1+ai])||'';
+          setUnit(id,ax,'cm');
           refreshHint(id,ax);
         });
         if(gE&&row[o+4]!=='')gE.value=parseFloat(row[o+4])||'';
@@ -787,9 +881,10 @@ l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Retu
       if(qE)qE.value=item.qty||1;
       if(gE&&item.gwt)gE.value=item.gwt;
       ['l','w','h'].forEach(ax=>{
-        const inp=$(`d-${ax}-${id}`), ubtn=$(`u-${ax}-${id}`);
+        const inp=$(`d-${ax}-${id}`);
         if(inp)inp.value=item[ax]||'';
-        if(ubtn){ ubtn.dataset.unit=UNITS.includes(u)?u:'cm'; ubtn.textContent=ubtn.dataset.unit; ubtn.className='ubadge '+unitClass(ubtn.dataset.unit); }
+        const u2=UNITS.includes(u)?u:'cm';
+        setUnit(id,ax,u2);
         refreshHint(id,ax);
       });
       recalcRow(id);
