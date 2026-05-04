@@ -725,7 +725,27 @@ function imgPicked(e){const f=e.target.files[0];if(f)loadImg(f);}
 function loadImg(f){
   aiMime=f.type||'image/png';
   const r=new FileReader();
-  r.onload=e=>{const u=e.target.result;aiB64=u.split(',')[1];$('pimg').src=u;$('prev').classList.add('on');setSt('','');checkRunBtn();};
+  r.onload=e=>{
+    const u=e.target.result;
+    // Resize image if too large (max 1200px wide) to avoid API payload limits
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;
+      let w=img.width, h=img.height;
+      if(w>MAX){ h=Math.round(h*(MAX/w)); w=MAX; }
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const resized=canvas.toDataURL('image/jpeg',0.85);
+      aiB64=resized.split(',')[1];
+      aiMime='image/jpeg';
+      $('pimg').src=resized;
+      $('prev').classList.add('on');
+      setSt('','');
+      checkRunBtn();
+    };
+    img.src=u;
+  };
   r.readAsDataURL(f);
 }
 const dz=$('dzone');
@@ -748,7 +768,7 @@ l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Retu
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:aiMime,data:aiB64}},{type:'text',text:prompt}]}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:aiMime,data:aiB64}},{type:'text',text:prompt}]}]})
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
     const d=await res.json();
@@ -778,7 +798,13 @@ l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Retu
     setSt('ok',`✓ ${items.length} rows imported successfully!`);
     $('runbtn').disabled=false;
     setTimeout(closeAI,1600);
-  }catch(er){setSt('err','Error: '+er.message);$('runbtn').disabled=false;}
+  }catch(er){
+    let msg=er.message;
+    if(msg.toLowerCase().includes('fetch')||msg.toLowerCase().includes('network')){
+      msg='Network error: Open this file via a local server (not file://). See README for instructions.';
+    }
+    setSt('err','Error: '+msg);$('runbtn').disabled=false;
+  }
 }
 
 addRows(10);
