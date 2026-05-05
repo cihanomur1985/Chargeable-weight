@@ -207,7 +207,27 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #b45309; }
 .unit-radios label.selected-feet { border-color: #3b82f6; background: #dbeafe; color: #1d4ed8; }
 
-/* cm hint */
+/* ── WEIGHT CELL ── */
+.gwt-td { padding: 3px 3px; }
+.wgt-radios {
+  display: flex; gap: 2px; justify-content: center; margin-top: 3px;
+}
+.wgt-radios label {
+  display: flex; align-items: center;
+  font-size: 9px; font-weight: 600; cursor: pointer;
+  padding: 1px 5px; border-radius: 3px;
+  border: 1px solid #e5e7eb; background: #f9fafb;
+  color: #9ca3af; transition: all 0.1s; user-select: none;
+  white-space: nowrap;
+}
+.wgt-radios input[type=radio] { display: none; }
+.wgt-radios label.selected-kg { border-color: #9ca3af; background: #e5e7eb; color: #374151; }
+.wgt-radios label.selected-lb { border-color: #8b5cf6; background: #ede9fe; color: #6d28d9; }
+.wgt-hint {
+  font-size: 9px; color: #9ca3af; text-align: center;
+  height: 10px; line-height: 10px; margin-top: 1px;
+}
+.wgt-hint.on { color: #6d28d9; font-weight: 600; }
 .dim-hint {
   font-size: 9px; color: #9ca3af; text-align: center;
   height: 10px; line-height: 10px; margin-top: 1px;
@@ -421,7 +441,7 @@ footer span { color: #C8102E; font-weight: 600; }
           <th>Length (L)</th>
           <th>Width (W)</th>
           <th>Height (H)</th>
-          <th>Unit Wgt (kg)</th>
+          <th>Unit Wgt <span style="font-weight:400;text-transform:none;">(kg)</span></th>
           <th>Vol. Wgt (kg)</th>
           <th class="th-cw">Chargeable (kg)</th>
           <th></th>
@@ -448,13 +468,6 @@ footer span { color: #C8102E; font-weight: 600; }
       <button class="mclose" onclick="closeAI()">✕</button>
     </div>
     <div class="mbody">
-      <div class="flabel">Anthropic API Key <a href="https://console.anthropic.com/settings/keys" target="_blank">→ Get free key</a> <span id="key-status" style="color:#16a34a;font-weight:700;margin-left:6px;"></span></div>
-      <div class="frow">
-        <input class="finp" id="akey" type="password" placeholder="sk-ant-..." oninput="keyChanged()" onfocus="this.style.borderColor='#C8102E'" onblur="this.style.borderColor='#e5e7eb'">
-        <button class="feye" onclick="toggleEye()">👁</button>
-      </div>
-      <div class="fnote">Stored only in your browser — never sent elsewhere.</div>
-      <div class="fdiv"></div>
       <div class="dzone" id="dzone">
         <input type="file" accept="image/*" onchange="imgPicked(event)">
         <div class="dicon">📸</div>
@@ -507,6 +520,40 @@ function setUnit(id, ax, u){
 function getUnit(id,ax){ return ($(`d-${ax}-${id}`)?.dataset.unit)||'cm'; }
 function getCm(id,ax){ return toCm(parseFloat($(`d-${ax}-${id}`)?.value)||0, getUnit(id,ax)); }
 
+/* weight unit system */
+const LB_TO_KG = 0.45359237;
+function getWgtUnit(id){ return ($(`d-gwt-${id}`)?.dataset.wgtunit)||'kg'; }
+function getKg(id){
+  const v=parseFloat($(`d-gwt-${id}`)?.value)||0;
+  return getWgtUnit(id)==='lb' ? v*LB_TO_KG : v;
+}
+function setWgtUnit(id, u){
+  const inp=$(`d-gwt-${id}`);
+  if(!inp) return;
+  const prev=inp.dataset.wgtunit||'kg';
+  if(prev===u) return;
+  // Convert existing value
+  const val=parseFloat(inp.value)||0;
+  if(val>0){
+    inp.value = u==='lb' ? +(val/LB_TO_KG).toFixed(2) : +(val*LB_TO_KG).toFixed(2);
+  }
+  inp.dataset.wgtunit=u;
+  ['kg','lb'].forEach(unit=>{
+    const lbl=$(`wl-${unit}-${id}`);
+    if(lbl) lbl.className = unit===u ? `selected-${unit}` : '';
+  });
+  refreshWgtHint(id);
+  recalcRow(id);
+}
+function refreshWgtHint(id){
+  const u=getWgtUnit(id);
+  const v=parseFloat($(`d-gwt-${id}`)?.value)||0;
+  const el=$(`wh-${id}`);
+  if(!el) return;
+  if(u==='lb'&&v>0){ el.textContent=`= ${(v*LB_TO_KG).toFixed(2)} kg`; el.className='wgt-hint on'; }
+  else { el.textContent=''; el.className='wgt-hint'; }
+}
+
 function refreshHint(id,ax){
   const u = getUnit(id,ax);
   const v = parseFloat($(`d-${ax}-${id}`)?.value)||0;
@@ -552,7 +599,7 @@ function recalcRow(id){
   const tr=document.querySelector(`tr[data-id="${id}"]`); if(!tr)return;
   const qty=parseFloat(tr.querySelector('[data-field="qty"]')?.value)||1;
   const l=getCm(id,'l'), w=getCm(id,'w'), h=getCm(id,'h');
-  const gwt=parseFloat(tr.querySelector('[data-field="gwt"]')?.value)||0;
+  const gwt=getKg(id);  // always in kg
 
   const vwEl=$('vw-'+id);
   let vw=0;
@@ -577,7 +624,7 @@ function startCWEdit(id){
   const tr=document.querySelector(`tr[data-id="${id}"]`);
   const qty=parseFloat(tr?.querySelector('[data-field="qty"]')?.value)||1;
   const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
-  const gwt=parseFloat(tr?.querySelector('[data-field="gwt"]')?.value)||0;
+  const gwt=getKg(id);
   const vw=(l&&w&&h)?qty*(l*w*h/1e6)*F:0;
   const auto=Math.max(qty*gwt,vw);
   disp.style.display='none'; inp.style.display='block';
@@ -588,7 +635,7 @@ function commitCW(id){
   const tr=document.querySelector(`tr[data-id="${id}"]`);
   const qty=parseFloat(tr?.querySelector('[data-field="qty"]')?.value)||1;
   const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
-  const gwt=parseFloat(tr?.querySelector('[data-field="gwt"]')?.value)||0;
+  const gwt=getKg(id);
   const vw=(l&&w&&h)?qty*(l*w*h/1e6)*F:0;
   const auto=Math.max(qty*gwt,vw);
   const raw=parseFloat(inp.value);
@@ -603,7 +650,7 @@ function recalcSummary(){
     const id=parseInt(tr.dataset.id);
     const lI=$(`d-l-${id}`); if(!lI||!lI.value)return;
     const qty=parseFloat(tr.querySelector('[data-field="qty"]')?.value)||1;
-    const gwt=parseFloat(tr.querySelector('[data-field="gwt"]')?.value)||0;
+    const gwt=getKg(id);
     const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');
     tp+=qty; tw+=qty*gwt;
     let vw=0;
@@ -705,11 +752,33 @@ function addRows(n){
       tr.appendChild(td);
     });
 
-    // GWT
+    // GWT with kg/lb toggle
     const tg=document.createElement('td');
-    const gi=mkInp('gwt',id); gi.placeholder='0';
-    gi.addEventListener('input',()=>recalcRow(id));
-    tg.appendChild(gi); tr.appendChild(tg);
+    tg.className='gwt-td';
+    const gi=mkInp('gwt',id); gi.placeholder='0'; gi.id=`d-gwt-${id}`; gi.dataset.wgtunit='kg';
+    gi.addEventListener('input',()=>{refreshWgtHint(id);recalcRow(id);});
+    gi.addEventListener('focus',()=>gi.select());
+    tg.appendChild(gi);
+    // weight unit radios
+    const wRadioWrap=document.createElement('div');
+    wRadioWrap.className='wgt-radios';
+    ['kg','lb'].forEach(unit=>{
+      const lbl=document.createElement('label');
+      lbl.id=`wl-${unit}-${id}`;
+      lbl.className= unit==='kg' ? 'selected-kg' : '';
+      const radio=document.createElement('input');
+      radio.type='radio'; radio.name=`wu-${id}`; radio.value=unit;
+      if(unit==='kg') radio.checked=true;
+      radio.addEventListener('change',()=>setWgtUnit(id,unit));
+      const span=document.createElement('span'); span.textContent=unit;
+      lbl.appendChild(radio); lbl.appendChild(span);
+      wRadioWrap.appendChild(lbl);
+    });
+    tg.appendChild(wRadioWrap);
+    const wHint=document.createElement('div');
+    wHint.className='wgt-hint'; wHint.id=`wh-${id}`;
+    tg.appendChild(wHint);
+    tr.appendChild(tg);
 
     // VW
     const tv=document.createElement('td');
@@ -728,7 +797,7 @@ function addRows(n){
     ci.addEventListener('blur',()=>commitCW(id));
     ci.addEventListener('keydown',e=>{
       if(e.key==='Enter')ci.blur();
-      if(e.key==='Escape'){delete cwo[id];const tr2=document.querySelector(`tr[data-id="${id}"]`);const qty2=parseFloat(tr2?.querySelector('[data-field="qty"]')?.value)||1;const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');const gwt2=parseFloat(tr2?.querySelector('[data-field="gwt"]')?.value)||0;const vw2=(l&&w&&h)?qty2*(l*w*h/1e6)*F:0;renderCW(id,Math.max(qty2*gwt2,vw2));recalcSummary();}
+      if(e.key==='Escape'){delete cwo[id];const tr2=document.querySelector(`tr[data-id="${id}"]`);const qty2=parseFloat(tr2?.querySelector('[data-field="qty"]')?.value)||1;const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');const gwt2=getKg(id);const vw2=(l&&w&&h)?qty2*(l*w*h/1e6)*F:0;renderCW(id,Math.max(qty2*gwt2,vw2));recalcSummary();}
     });
     tc.appendChild(cd); tc.appendChild(ci); tr.appendChild(tc);
 
@@ -806,24 +875,10 @@ function openAI(){
   $('modal').classList.add('open');
   aiB64=null; $('prev').classList.remove('on'); $('pimg').src='';
   setSt('','');
-  const saved=localStorage.getItem('ak')||'';
-  $('akey').value=saved;
-  checkRunBtn();
+  $('runbtn').disabled=true;
 }
 function closeAI(){$('modal').classList.remove('open');}
-function keyChanged(){
-  const k=$('akey').value.trim();
-  localStorage.setItem('ak',k);
-  checkRunBtn();
-}
-function toggleEye(){const i=$('akey');i.type=i.type==='password'?'text':'password';}
-function checkRunBtn(){
-  const hasKey=$('akey').value.trim().length>10;
-  $('runbtn').disabled=!(hasKey&&!!aiB64);
-  // Show key status on the modal button label
-  const keyLbl=$('key-status');
-  if(keyLbl) keyLbl.textContent=hasKey?'✓ Key saved':'';
-}
+function checkRunBtn(){ $('runbtn').disabled=!aiB64; }
 function setSt(t,m){const el=$('st');el.className='status'+(t?' '+t:'');el.innerHTML=m;}
 
 function imgPicked(e){const f=e.target.files[0];if(f)loadImg(f);}
@@ -860,19 +915,20 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');co
 
 async function runAI(){
   if(!aiB64)return;
-  const key=$('akey').value.trim();
-  if(!key){setSt('err','Please enter your API key.');return;}
   $('runbtn').disabled=true;
   setSt('thinking','<div class="spin"></div> Claude is reading the image…');
 
   const prompt=`Analyze this cargo/shipping image. Extract all line items as JSON array only:
-[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25}]
-l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Return [] if no data found. No extra text.`;
+[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg"}]
+l=length, w=width, h=height, gwt=weight per piece.
+Use dimension unit shown (cm/inch/feet), do NOT convert.
+Use weight unit shown (kg/lb/lbs) — if weight shown as LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
+Return [] if no data found. No extra text.`;
 
   try{
     const res=await fetch('https://cargoproxy.cihanomur.workers.dev',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:aiMime,data:aiB64}},{type:'text',text:prompt}]}]})
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
@@ -888,9 +944,21 @@ l=length, w=width, h=height. Use unit shown (cm/inch/feet), do NOT convert. Retu
       const tr=trs[i]; if(!tr)return;
       const id=parseInt(tr.dataset.id);
       const u=(item.unit||'cm').toLowerCase();
-      const qE=tr.querySelector('[data-field="qty"]'),gE=tr.querySelector('[data-field="gwt"]');
+      const wu=(item.wgt_unit||'kg').toLowerCase();
+      const qE=tr.querySelector('[data-field="qty"]'),gE=$(`d-gwt-${id}`);
       if(qE)qE.value=item.qty||1;
-      if(gE&&item.gwt)gE.value=item.gwt;
+      if(gE&&item.gwt){
+        // Always store as kg internally — convert if source is lb
+        const isLb = wu==='lb'||wu==='lbs';
+        gE.dataset.wgtunit = isLb ? 'lb' : 'kg';
+        gE.value = item.gwt;
+        // Update radio selection
+        ['kg','lb'].forEach(unit=>{
+          const lbl=$(`wl-${unit}-${id}`);
+          if(lbl) lbl.className = (isLb ? unit==='lb' : unit==='kg') ? `selected-${unit}` : '';
+        });
+        refreshWgtHint(id);
+      }
       ['l','w','h'].forEach(ax=>{
         const inp=$(`d-${ax}-${id}`);
         if(inp)inp.value=item[ax]||'';
