@@ -28,11 +28,7 @@ body {
   height: 56px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.logo { display: flex; align-items: center; gap: 10px; }
 .logo-box {
   width: 34px; height: 34px;
   background: #C8102E;
@@ -66,18 +62,13 @@ body {
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.card:last-child {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
+.card:last-child { background: #f0fdf4; border-color: #bbf7d0; }
 .card-label {
   font-size: 10px; font-weight: 600; color: #9ca3af;
   text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
 }
 .card:last-child .card-label { color: #16a34a; }
-.card-value {
-  font-size: 22px; font-weight: 700; color: #111827; line-height: 1;
-}
+.card-value { font-size: 22px; font-weight: 700; color: #111827; line-height: 1; }
 .card:last-child .card-value { color: #16a34a; }
 .card-unit { font-size: 10px; color: #9ca3af; margin-top: 3px; font-weight: 500; }
 .card:last-child .card-unit { color: #86efac; }
@@ -116,28 +107,19 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   overflow: hidden;
 }
-.table-scroll {
-  overflow-y: auto;
-  max-height: 560px;
-}
+.table-scroll { overflow-y: auto; max-height: 560px; }
 .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .table-scroll::-webkit-scrollbar-track { background: #f9fafb; }
 .table-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-/* colgroup widths — 3 dim cols × 14% = 42%, rest fills remainder */
-col.c-qty { width: 8%; }
+col.c-qty { width: 9%; }
 col.c-dim { width: 14%; }
 col.c-gwt { width: 10%; }
-col.c-vw  { width: 11%; }
-col.c-cw  { width: 13%; }
+col.c-vw  { width: 10%; }
+col.c-cw  { width: 12%; }
 col.c-del { width: 3%; }
-
 
 thead {
   background: #f8fafc;
@@ -160,6 +142,18 @@ tbody tr:hover { background: #fafafa; }
 td { padding: 3px 3px; text-align: center; vertical-align: middle; }
 td:first-child { text-align: left; padding-left: 14px; }
 
+/* Cell inner wrapper — ensures all cells same height */
+.cell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  gap: 3px;
+  padding: 2px 0;
+}
+td:first-child .cell-inner { align-items: flex-start; }
+
 /* ── INPUTS ── */
 input[type=number] { -moz-appearance: textfield; }
 input[type=number]::-webkit-inner-spin-button,
@@ -180,8 +174,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .dim-inp {
   width: 100%;
   background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px;
-  padding: 5px 6px;
-  color: #111827;
+  padding: 5px 6px; color: #111827;
   font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
   text-align: center; outline: none;
   transition: border-color 0.15s, background 0.1s;
@@ -191,63 +184,53 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .dim-inp::placeholder { color: #d1d5db; }
 
 /* unit radio group */
-.unit-radios {
-  display: flex; gap: 2px; justify-content: center; margin-top: 3px;
-}
+.unit-radios { display: flex; gap: 2px; justify-content: center; }
 .unit-radios label {
   display: flex; align-items: center;
   font-size: 9px; font-weight: 600; cursor: pointer;
   padding: 1px 5px; border-radius: 3px;
   border: 1px solid #e5e7eb; background: #f9fafb;
-  color: #9ca3af; transition: all 0.1s; user-select: none;
-  white-space: nowrap;
+  color: #d1d5db; transition: all 0.15s; user-select: none; white-space: nowrap;
 }
+.unit-radios label:hover { border-color: #9ca3af; color: #6b7280; }
 .unit-radios input[type=radio] { display: none; }
-.unit-radios label.selected-cm   { border-color: #9ca3af; background: #e5e7eb; color: #374151; }
-.unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #b45309; }
-.unit-radios label.selected-feet { border-color: #3b82f6; background: #dbeafe; color: #1d4ed8; }
+.unit-radios label.selected-cm   { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #92400e; font-weight: 700; }
+.unit-radios label.selected-feet { border-color: #2563eb; background: #dbeafe; color: #1e40af; font-weight: 700; }
 
 /* ── WEIGHT CELL ── */
 .gwt-td { padding: 3px 3px; }
-.wgt-radios {
-  display: flex; gap: 2px; justify-content: center; margin-top: 3px;
-}
+.wgt-radios { display: flex; gap: 2px; justify-content: center; }
 .wgt-radios label {
   display: flex; align-items: center;
   font-size: 9px; font-weight: 600; cursor: pointer;
   padding: 1px 5px; border-radius: 3px;
   border: 1px solid #e5e7eb; background: #f9fafb;
-  color: #9ca3af; transition: all 0.1s; user-select: none;
-  white-space: nowrap;
+  color: #d1d5db; transition: all 0.15s; user-select: none; white-space: nowrap;
 }
+.wgt-radios label:hover { border-color: #9ca3af; color: #6b7280; }
 .wgt-radios input[type=radio] { display: none; }
-.wgt-radios label.selected-kg { border-color: #9ca3af; background: #e5e7eb; color: #374151; }
-.wgt-radios label.selected-lb { border-color: #8b5cf6; background: #ede9fe; color: #6d28d9; }
-.wgt-hint {
-  font-size: 9px; color: #9ca3af; text-align: center;
-  height: 10px; line-height: 10px; margin-top: 1px;
-}
+.wgt-radios label.selected-kg { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.wgt-radios label.selected-lb { border-color: #8b5cf6; background: #ede9fe; color: #5b21b6; font-weight: 700; }
+.wgt-hint { font-size: 9px; color: #9ca3af; text-align: center; height: 10px; line-height: 10px; }
 .wgt-hint.on { color: #6d28d9; font-weight: 600; }
-.dim-hint {
-  font-size: 9px; color: #9ca3af; text-align: center;
-  height: 10px; line-height: 10px; margin-top: 1px;
-}
+.dim-hint { font-size: 9px; color: #9ca3af; text-align: center; height: 10px; line-height: 10px; }
 .dim-hint.on { color: #b45309; font-weight: 600; }
 
-/* ── NON-STACKABLE ── */
-.ns-wrap { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
-.ns-btn {
-  font-size: 8px; font-weight: 700; padding: 2px 5px;
-  border-radius: 3px; border: 1px solid #e5e7eb;
-  background: #f9fafb; color: #9ca3af; cursor: pointer;
-  white-space: nowrap; transition: all 0.15s;
-  font-family: 'Inter', sans-serif; line-height: 1.4; margin-top: 2px;
-  display: flex; align-items: center; gap: 3px; justify-content: center;
+/* ── STACKABLE / NON-STACKABLE ── */
+.ns-wrap { display: flex; flex-direction: column; align-items: stretch; }
+.stack-radios { display: flex; gap: 2px; justify-content: center; }
+.stack-radios label {
+  display: flex; align-items: center;
+  font-size: 8px; font-weight: 600; cursor: pointer;
+  padding: 1px 4px; border-radius: 3px;
+  border: 1px solid #e5e7eb; background: #f9fafb;
+  color: #d1d5db; transition: all 0.15s; user-select: none; white-space: nowrap;
 }
-.ns-btn::before { content: '☐'; font-size: 10px; }
-.ns-btn:hover { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
-.ns-btn.active { border-color: #f59e0b; background: #fef3c7; color: #92400e; }
-.ns-btn.active::before { content: '☑'; }
+.stack-radios label:hover { border-color: #9ca3af; color: #6b7280; }
+.stack-radios input[type=radio] { display: none; }
+.stack-radios label.selected-stackable    { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.stack-radios label.selected-nonstackable { border-color: #f59e0b; background: #fef3c7; color: #92400e; font-weight: 700; }
 
 /* ── VW display ── */
 .vw-val { font-size: 13px; font-weight: 600; color: #374151; }
@@ -279,14 +262,8 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .del-btn:hover { color: #C8102E; background: #fff1f2; }
 
 /* ── BOTTOM BAR ── */
-.bottom {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 24px 16px; flex-wrap: wrap;
-}
-.chip {
-  font-size: 11px; color: #6b7280; background: #fff; border: 1px solid #e5e7eb;
-  border-radius: 6px; padding: 4px 10px; font-weight: 500;
-}
+.bottom { display: flex; align-items: center; gap: 8px; padding: 0 24px 16px; flex-wrap: wrap; }
+.chip { font-size: 11px; color: #6b7280; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 10px; font-weight: 500; }
 .chip b { color: #C8102E; }
 .bspacer { flex: 1; }
 
@@ -297,6 +274,316 @@ footer {
   background: #fff; font-size: 11px; color: #9ca3af;
 }
 footer span { color: #C8102E; font-weight: 600; }
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #1a1f36 0%, #2d3561 100%);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 58px;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-box {
+  width: 36px; height: 36px;
+  background: #C8102E;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 800; color: #fff;
+}
+.logo-text { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+.logo-sub  { font-family: 'Syne', sans-serif; font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; }
+.hdiv { width: 1px; height: 28px; background: rgba(255,255,255,0.12); }
+.hmeta { font-family: 'DM Sans', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); }
+.hmeta strong { color: rgba(255,255,255,0.8); font-weight: 500; }
+.hspacer { flex: 1; }
+.hbadge {
+  background: rgba(200,16,46,0.9);
+  border-radius: 20px; padding: 5px 16px;
+  font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.5px;
+}
+
+/* ── SUMMARY CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 12px;
+  padding: 16px 20px 0;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e2e7f0;
+  box-shadow: 0 2px 8px rgba(30,40,80,0.05);
+}
+.card:last-child {
+  background: #1a1f36;
+  border-color: #1a1f36;
+}
+.card-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 8px; font-weight: 600; color: #8b96b0;
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+}
+.card:last-child .card-label { color: rgba(255,255,255,0.4); }
+.card-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 700; color: #1a1f36; line-height: 1;
+}
+.card:last-child .card-value { color: #4ade80; }
+.card-unit { font-family: 'DM Sans', sans-serif; font-size: 9px; color: #b0bcd0; margin-top: 3px; }
+.card:last-child .card-unit { color: rgba(74,222,128,0.5); }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 20px;
+  flex-wrap: wrap;
+  background: #fff;
+  margin: 12px 20px 0;
+  border-radius: 10px;
+  border: 1px solid #e2e7f0;
+}
+.tl-label { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; color: #8b96b0; letter-spacing: 0.5px; margin-right: 2px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 6px; border: none;
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary { background: #C8102E; color: #fff; }
+.btn-primary:hover { background: #a50d25; }
+.btn-secondary { background: #fff; color: #4a5570; border: 1.5px solid #e2e7f0; }
+.btn-secondary:hover { background: #f4f6fb; border-color: #b0bcd0; }
+.btn-ghost { background: transparent; color: #b0bcd0; border: 1.5px solid transparent; }
+.btn-ghost:hover { background: #f4f6fb; color: #8b96b0; }
+.btn-upload { background: #fff; color: #4a5570; border: 1.5px solid #e2e7f0; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.15s; }
+.btn-upload:hover { background: #f4f6fb; }
+.btn-upload input { display: none; }
+.tsep { width: 1px; height: 22px; background: #e2e7f0; margin: 0 4px; }
+.tspacer { flex: 1; }
+
+/* ── TABLE ── */
+.table-wrap {
+  margin: 12px 20px 20px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e7f0;
+  box-shadow: 0 2px 8px rgba(30,40,80,0.04);
+  overflow: hidden;
+}
+.table-scroll {
+  overflow-y: auto;
+  max-height: 560px;
+}
+.table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.table-scroll::-webkit-scrollbar-track { background: #f4f6fb; }
+.table-scroll::-webkit-scrollbar-thumb { background: #c8d0e0; border-radius: 3px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+col.c-qty { width: 9%; }
+col.c-dim { width: 14%; }
+col.c-gwt { width: 10%; }
+col.c-vw  { width: 10%; }
+col.c-cw  { width: 12%; }
+col.c-del { width: 3%; }
+
+thead {
+  background: #f8f9fc;
+  position: sticky; top: 0; z-index: 5;
+  border-bottom: 2px solid #C8102E;
+}
+th {
+  padding: 10px 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 9px; font-weight: 600; color: #8b96b0;
+  text-align: center; text-transform: uppercase; letter-spacing: 1px;
+  white-space: nowrap;
+}
+th:first-child { text-align: left; padding-left: 12px; }
+th.th-cw { color: #16a34a; }
+
+tbody tr { border-bottom: 1px solid #f0f3f8; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f8f9fc; }
+
+td { padding: 4px 4px; text-align: center; vertical-align: middle; }
+td:first-child { text-align: left; padding-left: 12px; }
+
+/* Every cell content wrapper — fixed height so all cells align */
+.cell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 72px;
+  gap: 3px;
+  padding: 2px 0;
+}
+td:first-child .cell-inner { align-items: flex-start; }
+
+/* H cell has stackable so needs more height */
+.cell-inner-h {
+  min-height: 72px;
+}
+
+/* ── INPUTS ── */
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.inp {
+  width: 100%;
+  background: #f4f6fb; border: 1.5px solid #e2e7f0; border-radius: 6px;
+  padding: 5px 6px; color: #1a1f36;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 500;
+  text-align: center; outline: none; transition: border-color 0.15s, background 0.1s;
+}
+.inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
+.inp::placeholder { color: #c8d0e0; font-size: 11px; }
+
+/* ── DIM CELL ── */
+.dim-td { padding: 5px 4px; }
+.dim-inp {
+  width: 100%;
+  background: #f4f6fb; border: 1.5px solid #e2e7f0; border-radius: 6px;
+  padding: 5px 6px;
+  color: #1a1f36;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 500;
+  text-align: center; outline: none;
+  transition: border-color 0.15s, background 0.1s;
+  box-sizing: border-box;
+}
+.dim-inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
+.dim-inp::placeholder { color: #c8d0e0; }
+
+/* unit radio group */
+.unit-radios {
+  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
+}
+.unit-radios label {
+  display: flex; align-items: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 8px; font-weight: 600; cursor: pointer;
+  padding: 2px 5px; border-radius: 3px;
+  border: 1.5px solid #e2e7f0; background: #f4f6fb;
+  color: #c8d0e0; transition: all 0.15s; user-select: none;
+  white-space: nowrap;
+}
+.unit-radios label:hover { border-color: #8b96b0; color: #4a5570; }
+.unit-radios input[type=radio] { display: none; }
+.unit-radios label.selected-cm   { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #92400e; font-weight: 700; }
+.unit-radios label.selected-feet { border-color: #2563eb; background: #dbeafe; color: #1e40af; font-weight: 700; }
+
+/* ── WEIGHT CELL ── */
+.gwt-td { padding: 5px 4px; }
+.wgt-radios {
+  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
+}
+.wgt-radios label {
+  display: flex; align-items: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 8px; font-weight: 600; cursor: pointer;
+  padding: 2px 5px; border-radius: 3px;
+  border: 1.5px solid #e2e7f0; background: #f4f6fb;
+  color: #c8d0e0; transition: all 0.15s; user-select: none;
+  white-space: nowrap;
+}
+.wgt-radios label:hover { border-color: #8b96b0; color: #4a5570; }
+.wgt-radios input[type=radio] { display: none; }
+.wgt-radios label.selected-kg { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.wgt-radios label.selected-lb { border-color: #8b5cf6; background: #ede9fe; color: #5b21b6; font-weight: 700; }
+.wgt-hint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px; color: #8b96b0; text-align: center;
+  height: 10px; line-height: 10px; margin-top: 2px;
+}
+.wgt-hint.on { color: #6d28d9; font-weight: 600; }
+.dim-hint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px; color: #8b96b0; text-align: center;
+  height: 10px; line-height: 10px; margin-top: 2px;
+}
+.dim-hint.on { color: #b45309; font-weight: 600; }
+
+/* ── STACKABLE / NON-STACKABLE ── */
+.ns-wrap { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+.stack-radios {
+  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
+}
+.stack-radios label {
+  display: flex; align-items: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 7px; font-weight: 700; cursor: pointer;
+  padding: 2px 4px; border-radius: 3px;
+  border: 1.5px solid #e2e7f0; background: #f4f6fb;
+  color: #c8d0e0; transition: all 0.15s; user-select: none;
+  white-space: nowrap;
+}
+.stack-radios label:hover { border-color: #8b96b0; color: #4a5570; }
+.stack-radios input[type=radio] { display: none; }
+.stack-radios label.selected-stackable    { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
+.stack-radios label.selected-nonstackable { border-color: #f59e0b; background: #fef3c7; color: #92400e; font-weight: 700; }
+
+/* ── VW display ── */
+.vw-val { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #4a5570; }
+.vw-val.empty { color: #c8d0e0; font-weight: 400; }
+
+/* ── CHARGEABLE WEIGHT ── */
+.cw-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700; color: #16a34a;
+  cursor: pointer; padding: 4px 6px; border-radius: 6px;
+  border: 1.5px solid transparent; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; min-height: 30px;
+}
+.cw-val:hover { background: #f0fdf4; border-color: #bbf7d0; }
+.cw-val.empty { color: #c8d0e0; font-weight: 400; cursor: pointer; }
+.cw-val.manual { color: #d97706; }
+.cw-val.manual::after { content: ' ✎'; font-size: 9px; }
+.cw-inp {
+  display: none; width: 100%;
+  background: #f0fdf4; border: 1.5px solid #4ade80; border-radius: 6px;
+  padding: 5px 4px; color: #16a34a; font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700; text-align: center; outline: none;
+}
+
+/* ── DELETE ── */
+.del-btn {
+  background: none; border: none; color: #c8d0e0; cursor: pointer;
+  padding: 4px; border-radius: 4px; font-size: 11px; transition: all 0.15s; line-height: 1;
+}
+.del-btn:hover { color: #C8102E; background: #fff1f2; }
+
+/* ── BOTTOM BAR ── */
+.bottom {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px 16px; flex-wrap: wrap;
+}
+.chip {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; color: #8b96b0; background: #fff; border: 1px solid #e2e7f0;
+  border-radius: 6px; padding: 4px 10px; font-weight: 500;
+}
+.chip b { color: #C8102E; }
+.bspacer { flex: 1; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid #e2e7f0; padding: 10px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #8b96b0;
+}
+footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif; }
 
 /* ── AI MODAL ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); backdrop-filter: blur(3px); z-index: 500; align-items: center; justify-content: center; }
@@ -411,6 +698,11 @@ footer span { color: #C8102E; font-weight: 600; }
   <button class="btn btn-secondary" onclick="addRows(5)">+5</button>
   <button class="btn btn-secondary" onclick="addRows(10)">+10</button>
   <button class="btn btn-secondary" onclick="addRows(20)">+20</button>
+  <div class="tsep"></div>
+  <span class="tl-label">Convert all dims:</span>
+  <button class="btn btn-secondary" onclick="convertAllUnits('cm')">cm</button>
+  <button class="btn btn-secondary" onclick="convertAllUnits('inch')">inch</button>
+  <button class="btn btn-secondary" onclick="convertAllUnits('feet')">feet</button>
   <div class="tsep"></div>
   <label class="btn-upload">
     📂 Upload Excel
@@ -585,35 +877,65 @@ function refreshHint(id,ax){
   else { el.textContent=''; el.className='dim-hint'; }
 }
 
-/* non-stackable toggle — saves original value, restores on untick */
-const nsOriginal = {}; // stores original h value per row id
+/* global unit convert */
+function convertAllUnits(targetUnit){
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const id=parseInt(tr.dataset.id);
+    convertRowUnits(id, targetUnit);
+  });
+  recalcSummary();
+  toast(`All dimensions converted to ${targetUnit} ✓`);
+}
 
-function toggleNS(id){
-  const btn = $(`ns-${id}`);
-  const inp = $(`d-h-${id}`);
-  if(!btn||!inp) return;
-  const isActive = !btn.classList.contains('active');
-  if(isActive){
-    // Save original value before changing
-    nsOriginal[id] = inp.value;
-    const hCm = getCm(id,'h');
-    const target = (hCm > 0 && hCm >= 163) ? 240 : 163;
-    const u = getUnit(id,'h');
-    let val = target;
-    if(u==='inch') val = +(target/2.54).toFixed(2);
-    else if(u==='feet') val = +(target/30.48).toFixed(3);
-    inp.value = val;
-    btn.classList.add('active');
-    btn.title = 'Non-stackable ON — click to restore original height';
+/* single row unit convert */
+function convertRowUnits(id, targetUnit){
+  ['l','w','h'].forEach(ax=>{
+    const inp=$(`d-${ax}-${id}`);
+    if(!inp||!inp.value) { setUnit(id,ax,targetUnit); return; }
+    const curUnit=getUnit(id,ax);
+    if(curUnit===targetUnit) return;
+    const cm=toCm(parseFloat(inp.value)||0, curUnit);
+    if(!cm){ setUnit(id,ax,targetUnit); return; }
+    let val=cm;
+    if(targetUnit==='inch') val=+(cm/2.54).toFixed(2);
+    else if(targetUnit==='feet') val=+(cm/30.48).toFixed(3);
+    inp.value=val;
+    setUnit(id,ax,targetUnit);
+    refreshHint(id,ax);
+  });
+  recalcRow(id);
+}
+
+/* stackable / non-stackable */
+const nsOriginal = {};
+
+function setStackable(id, isNS){
+  const inp=$(`d-h-${id}`);
+  if(!inp) return;
+  ['stackable','nonstackable'].forEach(v=>{
+    const lbl=$(`sl-${v}-${id}`);
+    if(lbl) lbl.className = v===(isNS?'nonstackable':'stackable') ? `selected-${v}` : '';
+  });
+  if(isNS){
+    nsOriginal[id]=inp.value;
+    const hCm=getCm(id,'h');
+    const target=(hCm>0&&hCm>=163)?240:163;
+    const u=getUnit(id,'h');
+    let val=target;
+    if(u==='inch') val=+(target/2.54).toFixed(2);
+    else if(u==='feet') val=+(target/30.48).toFixed(3);
+    inp.value=val;
   } else {
-    // Restore original value
-    inp.value = nsOriginal[id] ?? '';
+    inp.value=nsOriginal[id]??'';
     delete nsOriginal[id];
-    btn.classList.remove('active');
-    btn.title = 'Non-stackable: sets height to 163 or 240 cm';
   }
   refreshHint(id,'h');
   recalcRow(id);
+}
+
+function isNonStackable(id){
+  const lbl=$(`sl-nonstackable-${id}`);
+  return lbl&&lbl.className.includes('selected-nonstackable');
 }
 
 /* row calc */
@@ -701,52 +1023,64 @@ function addRows(n){
 
 
     const tq=document.createElement('td');
+    const ciQty=document.createElement('div'); ciQty.className='cell-inner';
     const qi=mkInp('qty',id); qi.placeholder='1';
     qi.addEventListener('input',()=>recalcRow(id));
-    tq.appendChild(qi); tr.appendChild(tq);
+    ciQty.appendChild(qi);
+    const rowUnitWrap=document.createElement('div');
+    rowUnitWrap.style.cssText='display:flex;gap:2px;justify-content:center;margin-top:3px;';
+    ['cm','in','ft'].forEach(label=>{
+      const fullUnit = label==='in'?'inch':label==='ft'?'feet':'cm';
+      const btn=document.createElement('button');
+      btn.textContent=label;
+      btn.style.cssText='font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;border:1px solid #e5e7eb;background:#f9fafb;color:#d1d5db;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.15s;';
+      btn.title=`Convert this row to ${fullUnit}`;
+      btn.addEventListener('mouseenter',()=>{ btn.style.borderColor='#059669'; btn.style.background='#d1fae5'; btn.style.color='#065f46'; });
+      btn.addEventListener('mouseleave',()=>{ btn.style.borderColor='#e5e7eb'; btn.style.background='#f9fafb'; btn.style.color='#d1d5db'; });
+      btn.addEventListener('click',()=>convertRowUnits(id, fullUnit));
+      rowUnitWrap.appendChild(btn);
+    });
+    ciQty.appendChild(rowUnitWrap);
+    tq.appendChild(ciQty);
+    tr.appendChild(tq);
 
     // L W H
     ['l','w','h'].forEach(ax=>{
       const td=document.createElement('td');
       td.className='dim-td';
 
-      const wrap = ax==='h' ? document.createElement('div') : null;
-      if(wrap){ wrap.className='ns-wrap'; td.appendChild(wrap); }
-      const container = wrap || td;
-
-      // input row (for H: wrap in flex row with NS button)
-      let inputRow = container;
-      if(ax==='h'){
-        inputRow = document.createElement('div');
-        inputRow.style.cssText='display:flex;align-items:center;gap:2px;';
-        container.appendChild(inputRow);
-      }
+      const ci=document.createElement('div');
+      ci.className='cell-inner';
+      td.appendChild(ci);
 
       const inp=document.createElement('input');
       inp.className='dim-inp'; inp.type='number'; inp.min='0'; inp.placeholder='0';
       inp.id=`d-${ax}-${id}`; inp.dataset.unit='cm';
       inp.addEventListener('input',()=>{
         refreshHint(id,ax);
-        // If user manually edits H while NS is active, deactivate NS and update saved original
-        if(ax==='h'){
-          const nsBtn=$(`ns-${id}`);
-          if(nsBtn&&nsBtn.classList.contains('active')){
-            nsOriginal[id]=inp.value;
-          }
-        }
+        if(ax==='h' && isNonStackable(id)) nsOriginal[id]=inp.value;
         recalcRow(id);
       });
       inp.addEventListener('focus',()=>inp.select());
-      inputRow.appendChild(inp);
+      ci.appendChild(inp);
 
-      // non-stackable button for H
+      // stackable radios only for H
       if(ax==='h'){
-        const nsBtn=document.createElement('button');
-        nsBtn.className='ns-btn'; nsBtn.id=`ns-${id}`;
-        nsBtn.title='Non-stackable: sets height to 163 or 240 cm';
-        nsBtn.textContent='NS';
-        nsBtn.addEventListener('click',()=>toggleNS(id));
-        inputRow.appendChild(nsBtn);
+        const stackWrap=document.createElement('div');
+        stackWrap.className='stack-radios';
+        [['stackable','Stackable'],['nonstackable','Non Stackable']].forEach(([val,label])=>{
+          const lbl=document.createElement('label');
+          lbl.id=`sl-${val}-${id}`;
+          lbl.className= val==='stackable' ? 'selected-stackable' : '';
+          const radio=document.createElement('input');
+          radio.type='radio'; radio.name=`stack-${id}`; radio.value=val;
+          if(val==='stackable') radio.checked=true;
+          radio.addEventListener('change',()=>setStackable(id, val==='nonstackable'));
+          const span=document.createElement('span'); span.textContent=label;
+          lbl.appendChild(radio); lbl.appendChild(span);
+          stackWrap.appendChild(lbl);
+        });
+        ci.appendChild(stackWrap);
       }
 
       // unit radios
@@ -760,28 +1094,27 @@ function addRows(n){
         radio.type='radio'; radio.name=`u-${ax}-${id}`; radio.value=unit;
         if(unit==='cm') radio.checked=true;
         radio.addEventListener('change',()=>setUnit(id,ax,unit));
-        const span=document.createElement('span');
-        span.textContent=unit;
+        const span=document.createElement('span'); span.textContent=unit;
         lbl.appendChild(radio); lbl.appendChild(span);
         radioWrap.appendChild(lbl);
       });
-      container.appendChild(radioWrap);
+      ci.appendChild(radioWrap);
 
       const hint=document.createElement('div');
       hint.className='dim-hint'; hint.id=`h-${ax}-${id}`;
-      container.appendChild(hint);
+      ci.appendChild(hint);
 
       tr.appendChild(td);
     });
 
-    // GWT with kg/lb toggle
+    // GWT
     const tg=document.createElement('td');
     tg.className='gwt-td';
+    const ciGwt=document.createElement('div'); ciGwt.className='cell-inner';
     const gi=mkInp('gwt',id); gi.placeholder='0'; gi.id=`d-gwt-${id}`; gi.dataset.wgtunit='kg';
     gi.addEventListener('input',()=>{refreshWgtHint(id);recalcRow(id);});
     gi.addEventListener('focus',()=>gi.select());
-    tg.appendChild(gi);
-    // weight unit radios
+    ciGwt.appendChild(gi);
     const wRadioWrap=document.createElement('div');
     wRadioWrap.className='wgt-radios';
     ['kg','lb'].forEach(unit=>{
@@ -796,20 +1129,23 @@ function addRows(n){
       lbl.appendChild(radio); lbl.appendChild(span);
       wRadioWrap.appendChild(lbl);
     });
-    tg.appendChild(wRadioWrap);
+    ciGwt.appendChild(wRadioWrap);
     const wHint=document.createElement('div');
     wHint.className='wgt-hint'; wHint.id=`wh-${id}`;
-    tg.appendChild(wHint);
+    ciGwt.appendChild(wHint);
+    tg.appendChild(ciGwt);
     tr.appendChild(tg);
 
     // VW
     const tv=document.createElement('td');
+    const ciVw=document.createElement('div'); ciVw.className='cell-inner';
     const vd=document.createElement('div');
     vd.className='vw-val empty'; vd.id='vw-'+id; vd.textContent='—';
-    tv.appendChild(vd); tr.appendChild(tv);
+    ciVw.appendChild(vd); tv.appendChild(ciVw); tr.appendChild(tv);
 
     // CW
     const tc=document.createElement('td');
+    const ciCw=document.createElement('div'); ciCw.className='cell-inner';
     const cd=document.createElement('div');
     cd.className='cw-val empty'; cd.id='cw-'+id; cd.textContent='—';
     cd.title='Click to override';
@@ -821,14 +1157,15 @@ function addRows(n){
       if(e.key==='Enter')ci.blur();
       if(e.key==='Escape'){delete cwo[id];const tr2=document.querySelector(`tr[data-id="${id}"]`);const qty2=parseFloat(tr2?.querySelector('[data-field="qty"]')?.value)||1;const l=getCm(id,'l'),w=getCm(id,'w'),h=getCm(id,'h');const gwt2=getKg(id);const vw2=(l&&w&&h)?qty2*(l*w*h/1e6)*F:0;renderCW(id,Math.max(qty2*gwt2,vw2));recalcSummary();}
     });
-    tc.appendChild(cd); tc.appendChild(ci); tr.appendChild(tc);
+    ciCw.appendChild(cd); ciCw.appendChild(ci); tc.appendChild(ciCw); tr.appendChild(tc);
 
     // Del
     const td2=document.createElement('td');
+    const ciDel=document.createElement('div'); ciDel.className='cell-inner';
     const db=document.createElement('button');
     db.className='del-btn'; db.innerHTML='✕';
     db.addEventListener('click',()=>{delete cwo[id];tr.remove();$('rc').textContent=document.querySelectorAll('#tbody tr').length;recalcSummary();});
-    td2.appendChild(db); tr.appendChild(td2);
+    ciDel.appendChild(db); td2.appendChild(ciDel); tr.appendChild(td2);
 
     tb.appendChild(tr);
   }
@@ -941,10 +1278,11 @@ async function runAI(){
   setSt('thinking','<div class="spin"></div> Gemini is reading the image…');
 
   const prompt=`Analyze this cargo/shipping image. Extract all line items as JSON array only:
-[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg"}]
+[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg","non_stackable":false}]
 l=length, w=width, h=height, gwt=weight per piece.
 Use dimension unit shown (cm/inch/feet), do NOT convert.
-Use weight unit shown (kg/lb/lbs) — if weight shown as LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
+Use weight unit shown (kg/lb/lbs) — if LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
+Set non_stackable to true if item is marked as non-stackable, unstackable, NS, or similar.
 Return [] if no data found. No extra text, no markdown, just the JSON array.`;
 
   try{
@@ -1016,6 +1354,7 @@ Return [] if no data found. No extra text, no markdown, just the JSON array.`;
         setUnit(id,ax,u2);
         refreshHint(id,ax);
       });
+      if(item.non_stackable===true) setStackable(id, true);
       recalcRow(id);
     });
     recalcSummary();
@@ -1067,10 +1406,11 @@ async function runPDF(){
       r.readAsDataURL(pdfFile);
     });
     const prompt=`Analyze this cargo/shipping PDF document. Extract ALL line items with dimensions as JSON array only:
-[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg"}]
+[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg","non_stackable":false}]
 l=length, w=width, h=height, gwt=weight per piece.
 Use dimension unit shown (cm/inch/feet), do NOT convert.
 Use weight unit shown (kg/lb/lbs) — if LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
+Set non_stackable to true if item is marked as non-stackable, unstackable, NS, or similar.
 Return [] if no dimension data found. No extra text, no markdown, just the JSON array.`;
 
     setPdfSt('thinking','<div class="spin"></div> AI is extracting dimensions…');
@@ -1118,6 +1458,7 @@ Return [] if no dimension data found. No extra text, no markdown, just the JSON 
         setUnit(id,ax,UNITS.includes(u)?u:'cm');
         refreshHint(id,ax);
       });
+      if(item.non_stackable===true) setStackable(id, true);
       recalcRow(id);
     });
     recalcSummary();
