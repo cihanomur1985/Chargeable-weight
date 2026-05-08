@@ -940,8 +940,17 @@ Return [] if no data found. No extra text, no markdown, just the JSON array.`;
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
     const d=await res.json();
-    const raw=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    const items=JSON.parse(raw.replace(/```json|```/gi,'').trim());
+    const raw=(d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    console.log('Gemini raw:', raw);
+    if(!raw){ setSt('err','Gemini returned empty response. Check API key or try again.'); $('runbtn').disabled=false; return; }
+    let items;
+    try{
+      const cleaned = raw.replace(/^```[\w]*\n?/,'').replace(/```$/,'').trim();
+      items = JSON.parse(cleaned);
+    }catch(pe){
+      setSt('err','Parse error: '+pe.message+' — Raw: '+raw.substring(0,100));
+      $('runbtn').disabled=false; return;
+    }
     if(!Array.isArray(items)||!items.length){setSt('err','No dimension data found. Try a clearer image.');$('runbtn').disabled=false;return;}
 
     const cur=document.querySelectorAll('#tbody tr').length;
