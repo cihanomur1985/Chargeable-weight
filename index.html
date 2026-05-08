@@ -955,11 +955,23 @@ Return [] if no data found. No extra text, no markdown, just the JSON array.`;
     }
     if(!Array.isArray(items)||!items.length){setSt('err','No dimension data found. Try a clearer image.');$('runbtn').disabled=false;return;}
 
-    const cur=document.querySelectorAll('#tbody tr').length;
-    if(items.length>cur)addRows(items.length-cur);
-    const trs=document.querySelectorAll('#tbody tr');
-    items.forEach((item,i)=>{
-      const tr=trs[i]; if(!tr)return;
+    // Find the last filled row index
+    const allRows = document.querySelectorAll('#tbody tr');
+    let lastFilledIdx = -1;
+    allRows.forEach((tr, idx) => {
+      const id = parseInt(tr.dataset.id);
+      const l = $(`d-l-${id}`);
+      if(l && l.value) lastFilledIdx = idx;
+    });
+    const startIdx = lastFilledIdx + 1;
+
+    // Add more rows if needed
+    const available = allRows.length - startIdx;
+    if(items.length > available) addRows(items.length - available);
+
+    const trs = document.querySelectorAll('#tbody tr');
+    items.forEach((item, i) => {
+      const tr = trs[startIdx + i]; if(!tr) return;
       const id=parseInt(tr.dataset.id);
       const u=(item.unit||'cm').toLowerCase();
       const wu=(item.wgt_unit||'kg').toLowerCase();
