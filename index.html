@@ -940,7 +940,9 @@ Return [] if no data found. No extra text, no markdown, just the JSON array.`;
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
     const d=await res.json();
-    const raw=(d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    // Gemini 2.5 may return multiple parts (thinking + text), get last text part
+    const parts = d.candidates?.[0]?.content?.parts || [];
+    const raw = (parts.filter(p => p.text).pop()?.text || '').trim();
     console.log('Gemini raw:', raw);
     if(!raw){ setSt('err','Gemini returned empty response. Check API key or try again.'); $('runbtn').disabled=false; return; }
     let items;
