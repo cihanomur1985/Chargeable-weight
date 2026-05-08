@@ -417,6 +417,7 @@ footer span { color: #C8102E; font-weight: 600; }
     <input type="file" accept=".xlsx,.xls" onchange="excelUpload(event)">
   </label>
   <button class="btn btn-primary" onclick="openAI()">🤖 Read Screenshot</button>
+  <button class="btn btn-secondary" onclick="openPDF()">📄 Read PDF</button>
   <div class="tspacer"></div>
   <button class="btn btn-ghost" onclick="clearAll()">🗑 Clear All</button>
 </div>
@@ -484,7 +485,28 @@ footer span { color: #C8102E; font-weight: 600; }
   </div>
 </div>
 
-<footer>
+<!-- PDF MODAL -->
+<div class="overlay" id="pdfmodal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">📄 Read PDF with <em>AI</em></div>
+      <button class="mclose" onclick="closePDF()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="dzone" id="pdfdzone">
+        <input type="file" accept=".pdf" onchange="pdfPicked(event)">
+        <div class="dicon">📄</div>
+        <div class="dtitle">Drag & drop or click to browse</div>
+        <div class="dsub">PDF files · cargo lists, packing lists, AWBs</div>
+      </div>
+      <div class="status" id="pdfst"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-secondary" onclick="closePDF()">Cancel</button>
+      <button class="mbtn" id="pdfrunbtn" disabled onclick="runPDF()">Extract Dimensions</button>
+    </div>
+  </div>
+</div>
   <span style="color:#374151;font-weight:600;">Turkish Cargo · Volume Weight Calculator</span>
   <span>Chargeable = max(actual, vol. weight) · click cell to override · <span>1 m³ = 167 kg</span></span>
 </footer>
@@ -1004,6 +1026,105 @@ Return [] if no data found. No extra text, no markdown, just the JSON array.`;
     setSt('err','Error: '+er.message);
     $('runbtn').disabled=false;
   }
+}
+
+/* ── PDF MODAL ── */
+let pdfFile = null;
+
+function openPDF(){
+  $('pdfmodal').classList.add('open');
+  pdfFile=null;
+  setPdfSt('','');
+  $('pdfrunbtn').disabled=true;
+  $('pdfdzone').querySelector('input').value='';
+}
+function closePDF(){ $('pdfmodal').classList.remove('open'); }
+function setPdfSt(t,m){ const el=$('pdfst'); el.className='status'+(t?' '+t:''); el.innerHTML=m; }
+
+function pdfPicked(e){
+  const f=e.target.files[0];
+  if(f){ pdfFile=f; $('pdfrunbtn').disabled=false; setPdfSt('ok','✓ '+f.name+' ready'); }
+}
+
+const pdzdz=$('pdfdzone');
+pdzdz.addEventListener('dragover',e=>{e.preventDefault();pdzdz.classList.add('over');});
+pdzdz.addEventListener('dragleave',()=>pdzdz.classList.remove('over'));
+pdzdz.addEventListener('drop',e=>{
+  e.preventDefault(); pdzdz.classList.remove('over');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.pdf')){ pdfFile=f; $('pdfrunbtn').disabled=false; setPdfSt('ok','✓ '+f.name+' ready'); }
+});
+
+async function runPDF(){
+  if(!pdfFile) return;
+  $('pdfrunbtn').disabled=true;
+  setPdfSt('thinking','<div class="spin"></div> Reading PDF…');
+  try{
+    const b64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result.split(',')[1]);
+      r.onerror=rej;
+      r.readAsDataURL(pdfFile);
+    });
+    const prompt=`Analyze this cargo/shipping PDF document. Extract ALL line items with dimensions as JSON array only:
+[{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg"}]
+l=length, w=width, h=height, gwt=weight per piece.
+Use dimension unit shown (cm/inch/feet), do NOT convert.
+Use weight unit shown (kg/lb/lbs) — if LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
+Return [] if no dimension data found. No extra text, no markdown, just the JSON array.`;
+
+    setPdfSt('thinking','<div class="spin"></div> AI is extracting dimensions…');
+    const res=await fetch('https://cargoproxy.cihanomur.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'application/pdf',data:b64}},{text:prompt}]}]})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e?.error?.message||`HTTP ${res.status}`); }
+    const d=await res.json();
+    const parts2=d.candidates?.[0]?.content?.parts||[];
+    const raw=(parts2.filter(p=>p.text).pop()?.text||'').trim();
+    if(!raw){ setPdfSt('err','No data returned. Make sure the PDF contains dimension data.'); $('pdfrunbtn').disabled=false; return; }
+    let items;
+    try{
+      const cleaned=raw.replace(/^```[\w]*\n?/,'').replace(/```$/,'').trim();
+      items=JSON.parse(cleaned);
+    }catch(pe){ setPdfSt('err','Parse error: '+pe.message+' — Raw: '+raw.substring(0,120)); $('pdfrunbtn').disabled=false; return; }
+    if(!Array.isArray(items)||!items.length){ setPdfSt('err','No dimension data found in this PDF.'); $('pdfrunbtn').disabled=false; return; }
+
+    const allRows=document.querySelectorAll('#tbody tr');
+    let lastFilledIdx=-1;
+    allRows.forEach((tr,idx)=>{ const id=parseInt(tr.dataset.id); const l=$(`d-l-${id}`); if(l&&l.value) lastFilledIdx=idx; });
+    const startIdx=lastFilledIdx+1;
+    const available=allRows.length-startIdx;
+    if(items.length>available) addRows(items.length-available);
+    const trs=document.querySelectorAll('#tbody tr');
+    items.forEach((item,i)=>{
+      const tr=trs[startIdx+i]; if(!tr) return;
+      const id=parseInt(tr.dataset.id);
+      const u=(item.unit||'cm').toLowerCase();
+      const wu=(item.wgt_unit||'kg').toLowerCase();
+      const qE=tr.querySelector('[data-field="qty"]'), gE=$(`d-gwt-${id}`);
+      if(qE) qE.value=item.qty||1;
+      if(gE&&item.gwt){
+        const isLb=wu==='lb'||wu==='lbs';
+        gE.dataset.wgtunit=isLb?'lb':'kg';
+        gE.value=item.gwt;
+        ['kg','lb'].forEach(unit=>{ const lbl=$(`wl-${unit}-${id}`); if(lbl) lbl.className=(isLb?unit==='lb':unit==='kg')?`selected-${unit}`:''; });
+        refreshWgtHint(id);
+      }
+      ['l','w','h'].forEach(ax=>{
+        const inp=$(`d-${ax}-${id}`);
+        if(inp) inp.value=item[ax]||'';
+        setUnit(id,ax,UNITS.includes(u)?u:'cm');
+        refreshHint(id,ax);
+      });
+      recalcRow(id);
+    });
+    recalcSummary();
+    setPdfSt('ok',`✓ ${items.length} rows imported successfully!`);
+    $('pdfrunbtn').disabled=false;
+    setTimeout(closePDF,1600);
+  }catch(er){ setPdfSt('err','Error: '+er.message); $('pdfrunbtn').disabled=false; }
 }
 
 addRows(10);
