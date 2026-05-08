@@ -916,24 +916,31 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');co
 async function runAI(){
   if(!aiB64)return;
   $('runbtn').disabled=true;
-  setSt('thinking','<div class="spin"></div> Claude is reading the image…');
+  setSt('thinking','<div class="spin"></div> Gemini is reading the image…');
 
   const prompt=`Analyze this cargo/shipping image. Extract all line items as JSON array only:
 [{"qty":1,"l":100,"w":80,"h":60,"unit":"cm","gwt":25,"wgt_unit":"kg"}]
 l=length, w=width, h=height, gwt=weight per piece.
 Use dimension unit shown (cm/inch/feet), do NOT convert.
 Use weight unit shown (kg/lb/lbs) — if weight shown as LB or LBS set wgt_unit to "lb", otherwise "kg". Do NOT convert weight values.
-Return [] if no data found. No extra text.`;
+Return [] if no data found. No extra text, no markdown, just the JSON array.`;
 
   try{
     const res=await fetch('https://cargoproxy.cihanomur.workers.dev',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:aiMime,data:aiB64}},{type:'text',text:prompt}]}]})
+      body:JSON.stringify({
+        contents:[{
+          parts:[
+            {inline_data:{mime_type:aiMime,data:aiB64}},
+            {text:prompt}
+          ]
+        }]
+      })
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
     const d=await res.json();
-    const raw=d.content.map(c=>c.text||'').join('').trim();
+    const raw=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
     const items=JSON.parse(raw.replace(/```json|```/gi,'').trim());
     if(!Array.isArray(items)||!items.length){setSt('err','No dimension data found. Try a clearer image.');$('runbtn').disabled=false;return;}
 
@@ -948,11 +955,9 @@ Return [] if no data found. No extra text.`;
       const qE=tr.querySelector('[data-field="qty"]'),gE=$(`d-gwt-${id}`);
       if(qE)qE.value=item.qty||1;
       if(gE&&item.gwt){
-        // Always store as kg internally — convert if source is lb
         const isLb = wu==='lb'||wu==='lbs';
         gE.dataset.wgtunit = isLb ? 'lb' : 'kg';
         gE.value = item.gwt;
-        // Update radio selection
         ['kg','lb'].forEach(unit=>{
           const lbl=$(`wl-${unit}-${id}`);
           if(lbl) lbl.className = (isLb ? unit==='lb' : unit==='kg') ? `selected-${unit}` : '';
