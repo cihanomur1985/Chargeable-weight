@@ -6,6 +6,7 @@
 <title>Volume Weight Calculator · Turkish Cargo</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -51,27 +52,38 @@ body {
 /* ── SUMMARY CARDS ── */
 .cards {
   display: grid;
-  grid-template-columns: repeat(5,1fr);
-  gap: 10px;
-  padding: 16px 24px 0;
+  grid-template-columns: repeat(6,1fr);
+  gap: 6px;
+  padding: 10px 24px 0;
 }
 .card {
   background: #fff;
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 8px 10px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  min-width: 0;
 }
-.card:last-child { background: #f0fdf4; border-color: #bbf7d0; }
+.card-chargeable { background: #f0fdf4 !important; border-color: #bbf7d0 !important; }
 .card-label {
-  font-size: 10px; font-weight: 600; color: #9ca3af;
-  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
+  font-size: 8px; font-weight: 600; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.card:last-child .card-label { color: #16a34a; }
-.card-value { font-size: 22px; font-weight: 700; color: #111827; line-height: 1; }
-.card:last-child .card-value { color: #16a34a; }
-.card-unit { font-size: 10px; color: #9ca3af; margin-top: 3px; font-weight: 500; }
-.card:last-child .card-unit { color: #86efac; }
+.card-chargeable .card-label { color: #16a34a; }
+.card-value { font-size: 16px; font-weight: 700; color: #111827; line-height: 1; white-space: nowrap; }
+.card-chargeable .card-value { color: #16a34a; }
+.card-unit { font-size: 8px; color: #9ca3af; margin-top: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-chargeable .card-unit { color: #86efac; }
+
+/* density card */
+.card-density { border-color: #e5e7eb; background: #fff; }
+.card-density .card-label { color: #9ca3af; }
+.card-density .card-unit { color: #9ca3af; }
+.density-green  { color: #16a34a !important; }
+.density-orange { color: #ea580c !important; }
+.density-black  { color: #111827 !important; }
+.density-empty  { color: #d1d5db !important; }
 
 /* ── TOOLBAR ── */
 .toolbar {
@@ -115,10 +127,11 @@ body {
 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
 col.c-qty { width: 9%; }
-col.c-dim { width: 14%; }
-col.c-gwt { width: 10%; }
-col.c-vw  { width: 10%; }
-col.c-cw  { width: 12%; }
+col.c-dim { width: 12%; }
+col.c-stack { width: 10%; }
+col.c-gwt { width: 9%; }
+col.c-vw  { width: 9%; }
+col.c-cw  { width: 11%; }
 col.c-del { width: 3%; }
 
 thead {
@@ -134,6 +147,7 @@ th {
 }
 th:first-child { text-align: left; padding-left: 14px; }
 th.th-cw { color: #16a34a; }
+th.th-stack { color: #6366f1; }
 
 tbody tr { border-bottom: 1px solid #f3f4f6; }
 tbody tr:last-child { border-bottom: none; }
@@ -148,7 +162,7 @@ td:first-child { text-align: left; padding-left: 14px; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 72px;
+  min-height: 52px;
   gap: 3px;
   padding: 2px 0;
 }
@@ -217,13 +231,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .dim-hint { font-size: 9px; color: #9ca3af; text-align: center; height: 10px; line-height: 10px; }
 .dim-hint.on { color: #b45309; font-weight: 600; }
 
-/* ── STACKABLE / NON-STACKABLE ── */
+/* ── STACKABILITY column — Yes / No ── */
 .ns-wrap { display: flex; flex-direction: column; align-items: stretch; }
-.stack-radios { display: flex; gap: 2px; justify-content: center; }
+.stack-radios { display: flex; flex-direction: row; gap: 3px; align-items: center; justify-content: center; }
 .stack-radios label {
-  display: flex; align-items: center;
-  font-size: 8px; font-weight: 600; cursor: pointer;
-  padding: 1px 4px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; cursor: pointer;
+  padding: 4px 10px; border-radius: 4px;
   border: 1px solid #e5e7eb; background: #f9fafb;
   color: #d1d5db; transition: all 0.15s; user-select: none; white-space: nowrap;
 }
@@ -305,47 +319,11 @@ footer span { color: #C8102E; font-weight: 600; }
   font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.5px;
 }
 
-/* ── SUMMARY CARDS ── */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-  gap: 12px;
-  padding: 16px 20px 0;
-}
-.card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 14px 16px;
-  border: 1px solid #e2e7f0;
-  box-shadow: 0 2px 8px rgba(30,40,80,0.05);
-}
-.card:last-child {
-  background: #1a1f36;
-  border-color: #1a1f36;
-}
-.card-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 8px; font-weight: 600; color: #8b96b0;
-  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
-}
-.card:last-child .card-label { color: rgba(255,255,255,0.4); }
-.card-value {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px; font-weight: 700; color: #1a1f36; line-height: 1;
-}
-.card:last-child .card-value { color: #4ade80; }
-.card-unit { font-family: 'DM Sans', sans-serif; font-size: 9px; color: #b0bcd0; margin-top: 3px; }
-.card:last-child .card-unit { color: rgba(74,222,128,0.5); }
-
 /* ── TOOLBAR ── */
 .toolbar {
   display: flex; align-items: center; gap: 6px;
-  padding: 12px 20px;
+  padding: 12px 24px;
   flex-wrap: wrap;
-  background: #fff;
-  margin: 12px 20px 0;
-  border-radius: 10px;
-  border: 1px solid #e2e7f0;
 }
 .tl-label { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; color: #8b96b0; letter-spacing: 0.5px; margin-right: 2px; }
 .btn {
@@ -413,178 +391,6 @@ th.th-cw { color: #16a34a; }
 
 tbody tr { border-bottom: 1px solid #f0f3f8; }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: #f8f9fc; }
-
-td { padding: 4px 4px; text-align: center; vertical-align: middle; }
-td:first-child { text-align: left; padding-left: 12px; }
-
-/* Every cell content wrapper — fixed height so all cells align */
-.cell-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 72px;
-  gap: 3px;
-  padding: 2px 0;
-}
-td:first-child .cell-inner { align-items: flex-start; }
-
-/* H cell has stackable so needs more height */
-.cell-inner-h {
-  min-height: 72px;
-}
-
-/* ── INPUTS ── */
-input[type=number] { -moz-appearance: textfield; }
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-.inp {
-  width: 100%;
-  background: #f4f6fb; border: 1.5px solid #e2e7f0; border-radius: 6px;
-  padding: 5px 6px; color: #1a1f36;
-  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 500;
-  text-align: center; outline: none; transition: border-color 0.15s, background 0.1s;
-}
-.inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
-.inp::placeholder { color: #c8d0e0; font-size: 11px; }
-
-/* ── DIM CELL ── */
-.dim-td { padding: 5px 4px; }
-.dim-inp {
-  width: 100%;
-  background: #f4f6fb; border: 1.5px solid #e2e7f0; border-radius: 6px;
-  padding: 5px 6px;
-  color: #1a1f36;
-  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 500;
-  text-align: center; outline: none;
-  transition: border-color 0.15s, background 0.1s;
-  box-sizing: border-box;
-}
-.dim-inp:focus { border-color: #C8102E; background: #fff; box-shadow: 0 0 0 2px rgba(200,16,46,0.08); }
-.dim-inp::placeholder { color: #c8d0e0; }
-
-/* unit radio group */
-.unit-radios {
-  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
-}
-.unit-radios label {
-  display: flex; align-items: center;
-  font-family: 'Syne', sans-serif;
-  font-size: 8px; font-weight: 600; cursor: pointer;
-  padding: 2px 5px; border-radius: 3px;
-  border: 1.5px solid #e2e7f0; background: #f4f6fb;
-  color: #c8d0e0; transition: all 0.15s; user-select: none;
-  white-space: nowrap;
-}
-.unit-radios label:hover { border-color: #8b96b0; color: #4a5570; }
-.unit-radios input[type=radio] { display: none; }
-.unit-radios label.selected-cm   { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
-.unit-radios label.selected-inch { border-color: #d97706; background: #fef3c7; color: #92400e; font-weight: 700; }
-.unit-radios label.selected-feet { border-color: #2563eb; background: #dbeafe; color: #1e40af; font-weight: 700; }
-
-/* ── WEIGHT CELL ── */
-.gwt-td { padding: 5px 4px; }
-.wgt-radios {
-  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
-}
-.wgt-radios label {
-  display: flex; align-items: center;
-  font-family: 'Syne', sans-serif;
-  font-size: 8px; font-weight: 600; cursor: pointer;
-  padding: 2px 5px; border-radius: 3px;
-  border: 1.5px solid #e2e7f0; background: #f4f6fb;
-  color: #c8d0e0; transition: all 0.15s; user-select: none;
-  white-space: nowrap;
-}
-.wgt-radios label:hover { border-color: #8b96b0; color: #4a5570; }
-.wgt-radios input[type=radio] { display: none; }
-.wgt-radios label.selected-kg { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
-.wgt-radios label.selected-lb { border-color: #8b5cf6; background: #ede9fe; color: #5b21b6; font-weight: 700; }
-.wgt-hint {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 9px; color: #8b96b0; text-align: center;
-  height: 10px; line-height: 10px; margin-top: 2px;
-}
-.wgt-hint.on { color: #6d28d9; font-weight: 600; }
-.dim-hint {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 9px; color: #8b96b0; text-align: center;
-  height: 10px; line-height: 10px; margin-top: 2px;
-}
-.dim-hint.on { color: #b45309; font-weight: 600; }
-
-/* ── STACKABLE / NON-STACKABLE ── */
-.ns-wrap { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
-.stack-radios {
-  display: flex; gap: 2px; justify-content: center; margin-top: 4px;
-}
-.stack-radios label {
-  display: flex; align-items: center;
-  font-family: 'Syne', sans-serif;
-  font-size: 7px; font-weight: 700; cursor: pointer;
-  padding: 2px 4px; border-radius: 3px;
-  border: 1.5px solid #e2e7f0; background: #f4f6fb;
-  color: #c8d0e0; transition: all 0.15s; user-select: none;
-  white-space: nowrap;
-}
-.stack-radios label:hover { border-color: #8b96b0; color: #4a5570; }
-.stack-radios input[type=radio] { display: none; }
-.stack-radios label.selected-stackable    { border-color: #059669; background: #d1fae5; color: #065f46; font-weight: 700; }
-.stack-radios label.selected-nonstackable { border-color: #f59e0b; background: #fef3c7; color: #92400e; font-weight: 700; }
-
-/* ── VW display ── */
-.vw-val { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #4a5570; }
-.vw-val.empty { color: #c8d0e0; font-weight: 400; }
-
-/* ── CHARGEABLE WEIGHT ── */
-.cw-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 13px; font-weight: 700; color: #16a34a;
-  cursor: pointer; padding: 4px 6px; border-radius: 6px;
-  border: 1.5px solid transparent; transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center; min-height: 30px;
-}
-.cw-val:hover { background: #f0fdf4; border-color: #bbf7d0; }
-.cw-val.empty { color: #c8d0e0; font-weight: 400; cursor: pointer; }
-.cw-val.manual { color: #d97706; }
-.cw-val.manual::after { content: ' ✎'; font-size: 9px; }
-.cw-inp {
-  display: none; width: 100%;
-  background: #f0fdf4; border: 1.5px solid #4ade80; border-radius: 6px;
-  padding: 5px 4px; color: #16a34a; font-family: 'Syne', sans-serif;
-  font-size: 13px; font-weight: 700; text-align: center; outline: none;
-}
-
-/* ── DELETE ── */
-.del-btn {
-  background: none; border: none; color: #c8d0e0; cursor: pointer;
-  padding: 4px; border-radius: 4px; font-size: 11px; transition: all 0.15s; line-height: 1;
-}
-.del-btn:hover { color: #C8102E; background: #fff1f2; }
-
-/* ── BOTTOM BAR ── */
-.bottom {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 20px 16px; flex-wrap: wrap;
-}
-.chip {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px; color: #8b96b0; background: #fff; border: 1px solid #e2e7f0;
-  border-radius: 6px; padding: 4px 10px; font-weight: 500;
-}
-.chip b { color: #C8102E; }
-.bspacer { flex: 1; }
-
-/* ── FOOTER ── */
-footer {
-  border-top: 1px solid #e2e7f0; padding: 10px 20px;
-  display: flex; justify-content: space-between; align-items: center;
-  background: #fff; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #8b96b0;
-}
-footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif; }
-
 /* ── AI MODAL ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); backdrop-filter: blur(3px); z-index: 500; align-items: center; justify-content: center; }
 .overlay.open { display: flex; }
@@ -684,7 +490,12 @@ footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif;
     <div class="card-value" id="s-vw">0.00</div>
     <div class="card-unit">kg</div>
   </div>
-  <div class="card">
+  <div class="card card-density">
+    <div class="card-label">Density Ratio</div>
+    <div class="card-value density-empty" id="s-density">—</div>
+    <div class="card-unit" id="s-density-unit">kg/m³ · 1 : ratio</div>
+  </div>
+  <div class="card card-chargeable">
     <div class="card-label">Total Chargeable</div>
     <div class="card-value" id="s-cw">0.00</div>
     <div class="card-unit">kg · max(actual, vol.wgt)</div>
@@ -710,6 +521,7 @@ footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif;
   </label>
   <button class="btn btn-primary" onclick="openAI()">🤖 Read Screenshot</button>
   <button class="btn btn-secondary" onclick="openPDF()">📄 Read PDF</button>
+  <button class="btn btn-secondary" onclick="exportExcel()">📥 Export Excel</button>
   <div class="tspacer"></div>
   <button class="btn btn-ghost" onclick="clearAll()">🗑 Clear All</button>
 </div>
@@ -723,6 +535,7 @@ footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif;
         <col class="c-dim">
         <col class="c-dim">
         <col class="c-dim">
+        <col class="c-stack">
         <col class="c-gwt">
         <col class="c-vw">
         <col class="c-cw">
@@ -734,6 +547,7 @@ footer span { color: #C8102E; font-weight: 600; font-family: 'Syne', sans-serif;
           <th>Length (L)</th>
           <th>Width (W)</th>
           <th>Height (H)</th>
+          <th class="th-stack">Stackability</th>
           <th>Unit Wgt <span style="font-weight:400;text-transform:none;">(kg)</span></th>
           <th>Vol. Wgt (kg)</th>
           <th class="th-cw">Chargeable (kg)</th>
@@ -887,19 +701,43 @@ function convertAllUnits(targetUnit){
   toast(`All dimensions converted to ${targetUnit} ✓`);
 }
 
-/* single row unit convert */
+/* original cm storage — set when user types directly in cm mode */
+const origCm = {}; // {id: {l, w, h}}
+
+function storeOrigCm(id){
+  if(!origCm[id]) origCm[id]={};
+  ['l','w','h'].forEach(ax=>{
+    if(getUnit(id,ax)==='cm'){
+      const v=parseFloat($(`d-${ax}-${id}`)?.value)||0;
+      if(v>0) origCm[id][ax]=v;
+    }
+  });
+}
+
+/* single row unit convert — uses stored cm originals when converting back to cm */
 function convertRowUnits(id, targetUnit){
   ['l','w','h'].forEach(ax=>{
     const inp=$(`d-${ax}-${id}`);
-    if(!inp||!inp.value) { setUnit(id,ax,targetUnit); return; }
+    if(!inp){ setUnit(id,ax,targetUnit); return; }
     const curUnit=getUnit(id,ax);
-    if(curUnit===targetUnit) return;
-    const cm=toCm(parseFloat(inp.value)||0, curUnit);
-    if(!cm){ setUnit(id,ax,targetUnit); return; }
-    let val=cm;
-    if(targetUnit==='inch') val=+(cm/2.54).toFixed(2);
-    else if(targetUnit==='feet') val=+(cm/30.48).toFixed(3);
-    inp.value=val;
+    const curVal=parseFloat(inp.value)||0;
+
+    if(targetUnit==='cm'){
+      // Prefer stored original cm value to avoid rounding drift
+      const stored = origCm[id]?.[ax];
+      if(stored){ inp.value=stored; }
+      else if(curVal>0){ inp.value=+toCm(curVal,curUnit).toFixed(2); }
+    } else {
+      const cm = curVal>0 ? toCm(curVal, curUnit) : 0;
+      // Save current cm value before converting away
+      if(curUnit==='cm' && cm>0){
+        if(!origCm[id]) origCm[id]={};
+        origCm[id][ax]=cm;
+      }
+      if(cm>0){
+        inp.value = targetUnit==='inch' ? +(cm/2.54).toFixed(4) : +(cm/30.48).toFixed(4);
+      }
+    }
     setUnit(id,ax,targetUnit);
     refreshHint(id,ax);
   });
@@ -1007,6 +845,28 @@ function recalcSummary(){
   $('s-m3').textContent=fmt(tm,3);
   $('s-vw').textContent=fmt(tv,2);
   $('s-cw').textContent=fmt(tc,2);
+
+  // Density: (actual weight / volume) / 1000 → ratio for 1:X
+  // Formula: ratio = (m3 * 1000) / actual_weight
+  const densityEl = $('s-density');
+  const densityUnit = $('s-density-unit');
+  if(tm > 0 && tw > 0){
+    const ratio = (tm * 1000) / tw;
+    const ratioStr = ratio.toFixed(2);
+    densityEl.textContent = '1 : ' + ratioStr;
+    densityUnit.textContent = 'kg/m³ density ratio';
+    if(ratio >= 4.01){
+      densityEl.className = 'card-value density-black';
+    } else if(ratio >= 2.01){
+      densityEl.className = 'card-value density-orange';
+    } else {
+      densityEl.className = 'card-value density-green';
+    }
+  } else {
+    densityEl.textContent = '—';
+    densityEl.className = 'card-value density-empty';
+    densityUnit.textContent = 'kg/m³ · 1 : ratio';
+  }
 }
 
 /* add rows */
@@ -1059,31 +919,13 @@ function addRows(n){
       inp.addEventListener('input',()=>{
         refreshHint(id,ax);
         if(ax==='h' && isNonStackable(id)) nsOriginal[id]=inp.value;
+        if(getUnit(id,ax)==='cm') storeOrigCm(id);
         recalcRow(id);
       });
       inp.addEventListener('focus',()=>inp.select());
       ci.appendChild(inp);
 
-      // stackable radios only for H
-      if(ax==='h'){
-        const stackWrap=document.createElement('div');
-        stackWrap.className='stack-radios';
-        [['stackable','Stackable'],['nonstackable','Non Stackable']].forEach(([val,label])=>{
-          const lbl=document.createElement('label');
-          lbl.id=`sl-${val}-${id}`;
-          lbl.className= val==='stackable' ? 'selected-stackable' : '';
-          const radio=document.createElement('input');
-          radio.type='radio'; radio.name=`stack-${id}`; radio.value=val;
-          if(val==='stackable') radio.checked=true;
-          radio.addEventListener('change',()=>setStackable(id, val==='nonstackable'));
-          const span=document.createElement('span'); span.textContent=label;
-          lbl.appendChild(radio); lbl.appendChild(span);
-          stackWrap.appendChild(lbl);
-        });
-        ci.appendChild(stackWrap);
-      }
-
-      // unit radios
+      // unit radios (no stackable here anymore — moved to own column)
       const radioWrap=document.createElement('div');
       radioWrap.className='unit-radios';
       UNITS.forEach(unit=>{
@@ -1107,7 +949,25 @@ function addRows(n){
       tr.appendChild(td);
     });
 
-    // GWT
+    // STACKABILITY column
+    const tStack=document.createElement('td');
+    const ciStack=document.createElement('div'); ciStack.className='cell-inner';
+    const stackRadios=document.createElement('div'); stackRadios.className='stack-radios';
+    [['stackable','Yes'],['nonstackable','No']].forEach(([val,label])=>{
+      const lbl=document.createElement('label');
+      lbl.id=`sl-${val}-${id}`;
+      lbl.className= val==='stackable' ? 'selected-stackable' : '';
+      const radio=document.createElement('input');
+      radio.type='radio'; radio.name=`stack-${id}`; radio.value=val;
+      if(val==='stackable') radio.checked=true;
+      radio.addEventListener('change',()=>setStackable(id, val==='nonstackable'));
+      const span=document.createElement('span'); span.textContent=label;
+      lbl.appendChild(radio); lbl.appendChild(span);
+      stackRadios.appendChild(lbl);
+    });
+    ciStack.appendChild(stackRadios);
+    tStack.appendChild(ciStack);
+    tr.appendChild(tStack);
     const tg=document.createElement('td');
     tg.className='gwt-td';
     const ciGwt=document.createElement('div'); ciGwt.className='cell-inner';
@@ -1170,6 +1030,7 @@ function addRows(n){
     tb.appendChild(tr);
   }
   $('rc').textContent=tb.querySelectorAll('tr').length;
+  buildTabOrder();
 }
 
 function mkInp(field,id){
@@ -1178,12 +1039,35 @@ function mkInp(field,id){
   i.addEventListener('focus',()=>i.select());
   return i;
 }
+
+/* Tab order: qty → L → W → H → gwt → next row qty */
+function buildTabOrder(){
+  const order=[];
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const id=parseInt(tr.dataset.id);
+    const qty=tr.querySelector('[data-field="qty"]');
+    if(qty) order.push(qty);
+    ['l','w','h'].forEach(ax=>{ const el=$(`d-${ax}-${id}`); if(el) order.push(el); });
+    const gwt=$(`d-gwt-${id}`); if(gwt) order.push(gwt);
+  });
+  order.forEach((el,i)=>{
+    el.setAttribute('tabindex', i+1);
+    el.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){
+        e.preventDefault();
+        const next = order[i+1] || order[0];
+        if(next){ next.focus(); next.select(); }
+      }
+    });
+  });
+}
+
 function clearAll(){
   if(!confirm('Clear all data?'))return;
   $('tbody').innerHTML='';
   Object.keys(cwo).forEach(k=>delete cwo[k]);
   rid=0; $('rc').textContent=0;
-  recalcSummary(); addRows(10);
+  recalcSummary(); addRows(10); buildTabOrder();
 }
 
 function excelUpload(ev){
@@ -1466,6 +1350,90 @@ Return [] if no dimension data found. No extra text, no markdown, just the JSON 
     $('pdfrunbtn').disabled=false;
     setTimeout(closePDF,1600);
   }catch(er){ setPdfSt('err','Error: '+er.message); $('pdfrunbtn').disabled=false; }
+}
+
+/* ── EXPORT EXCEL ── */
+async function exportExcel(){
+  const rows=[];
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const id=parseInt(tr.dataset.id);
+    const qty=parseFloat(tr.querySelector('[data-field="qty"]')?.value)||0;
+    const l=parseFloat($(`d-l-${id}`)?.value)||0;
+    const w=parseFloat($(`d-w-${id}`)?.value)||0;
+    const h=parseFloat($(`d-h-${id}`)?.value)||0;
+    if(!l&&!w&&!h&&!qty) return;
+    const lUnit=getUnit(id,'l'), wUnit=getUnit(id,'w'), hUnit=getUnit(id,'h');
+    const gwt=getKg(id);
+    const lCm=getCm(id,'l'), wCm=getCm(id,'w'), hCm=getCm(id,'h');
+    const vw=qty&&lCm&&wCm&&hCm ? +(qty*(lCm*wCm*hCm/1e6)*F).toFixed(2) : 0;
+    const cw=cwo[id]!=null ? cwo[id] : +Math.max(qty*gwt,vw).toFixed(2);
+    const isNS=$(`sl-nonstackable-${id}`)?.className.includes('selected-nonstackable');
+    rows.push({qty,l,lUnit,w,wUnit,h,hUnit,gwt,vw,cw,stackable:isNS?'No':'Yes'});
+  });
+
+  if(!rows.length){ toast('No data to export!'); return; }
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Cargo');
+  ws.columns=[
+    {key:'qty',width:10},{key:'l',width:13},{key:'w',width:13},{key:'h',width:13},
+    {key:'gwt',width:14},{key:'vw',width:15},{key:'cw',width:16},{key:'stack',width:13}
+  ];
+
+  const headers=['Pieces','Length','Width','Height','Unit Wgt (kg)','Vol. Wgt (kg)','Chargeable (kg)','Stackable'];
+  const hColors=['C8102E','1D4ED8','1D4ED8','1D4ED8','374151','6B7280','16A34A','6366F1'];
+  const hRow=ws.addRow(headers);
+  hRow.height=22;
+  hRow.eachCell((cell,col)=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+hColors[col-1]}};
+    cell.font={bold:true,color:{argb:'FFFFFFFF'},size:10,name:'Calibri'};
+    cell.alignment={vertical:'middle',horizontal:'center'};
+    cell.border={bottom:{style:'thin',color:{argb:'FFCCCCCC'}}};
+  });
+
+  // Unit sub-header
+  const units=['pcs',rows[0].lUnit,rows[0].wUnit,rows[0].hUnit,'kg','kg','kg',''];
+  const uRow=ws.addRow(units);
+  uRow.height=13;
+  uRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF3F4F6'}};
+    cell.font={italic:true,color:{argb:'FF9CA3AF'},size:8,name:'Calibri'};
+    cell.alignment={vertical:'middle',horizontal:'center'};
+  });
+
+  rows.forEach((r,i)=>{
+    const dr=ws.addRow([r.qty,r.l,r.w,r.h,r.gwt||'',r.vw||'',r.cw||'',r.stackable]);
+    dr.height=18;
+    dr.eachCell((cell,col)=>{
+      cell.alignment={vertical:'middle',horizontal:'center'};
+      cell.font={size:10,name:'Calibri'};
+      if(i%2===1) cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF9FAFB'}};
+      if(col===7) cell.font={size:10,name:'Calibri',bold:true,color:{argb:'FF16A34A'}};
+      if(col===8) cell.font={size:10,name:'Calibri',bold:true,color:{argb:r.stackable==='No'?'FFD97706':'FF6B7280'}};
+    });
+  });
+
+  // Totals row
+  ws.addRow([]);
+  const tQty=rows.reduce((s,r)=>s+r.qty,0);
+  const tGwt=+rows.reduce((s,r)=>s+r.qty*(r.gwt||0),0).toFixed(2);
+  const tVw=+rows.reduce((s,r)=>s+(r.vw||0),0).toFixed(2);
+  const tCw=+rows.reduce((s,r)=>s+(r.cw||0),0).toFixed(2);
+  const sRow=ws.addRow(['TOTAL',tQty,'','',tGwt,tVw,tCw,'']);
+  sRow.height=20;
+  sRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F2937'}};
+    cell.font={bold:true,color:{argb:'FFFFFFFF'},size:10,name:'Calibri'};
+    cell.alignment={vertical:'middle',horizontal:'center'};
+  });
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`cargo_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
+  toast('Excel exported ✓');
 }
 
 addRows(10);
